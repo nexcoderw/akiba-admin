@@ -170,20 +170,19 @@ export function SessionProvider({
   if (result.kind === "authenticated") {
     return <SessionContext value={result.session}>{children}</SessionContext>;
   }
-  return (
-    <main className={styles.blocked}>
-      {result.kind === "denied" || result.kind === "unavailable" ? (
+  if (result.kind === "denied" || result.kind === "unavailable") {
+    return (
+      <main className={styles.blocked}>
         <AuthNotice
           title={result.kind === "denied" ? "Access unavailable" : undefined}
           message={result.problem.message}
           requestId={result.problem.requestId}
           onRetryAction={refresh}
         />
-      ) : (
-        <AuthNotice checking />
-      )}
-    </main>
-  );
+      </main>
+    );
+  }
+  return null;
 }
 
 export function usePlatformSession() {

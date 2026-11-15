@@ -161,7 +161,7 @@
   position: absolute;
   inset-block-start: calc(100% + 0.5rem);
   inset-inline: 0;
-  z-index: 20;
+  z-index: var(--layer-dropdown);
   padding: 0.375rem;
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius);

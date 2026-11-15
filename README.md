@@ -18,6 +18,8 @@ Only start the development server when requested. Check the frontend/API port an
 
 Import components directly from src/components/shared; no additional dependency is required.
 
+Each styled component file imports its own same-name CSS Module. Components do not share module files; global CSS contains shared design tokens and application foundations. Reusable Field markup owns field.module.css while each consuming control owns its own control styles.
+
 | Module | Exports | Behavior |
 | --- | --- | --- |
 | button.tsx | Button | Icons, variants, sizes, full width, pending state and async click locking |

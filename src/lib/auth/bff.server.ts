@@ -72,14 +72,15 @@ export async function handle(
     const cookie = request.headers.get("cookie") ?? "";
     const incoming = platformCookies(cookie, config.secure);
     const csrf = request.headers.get("x-platform-csrf-token");
-    if (
-      needsCsrf(operation) &&
-      !csrfMatches(incoming.csrf, csrf)
-    ) {
+    if (needsCsrf(operation) && !csrfMatches(incoming.csrf, csrf)) {
       return problem(403, operation, { code: "ACCESS_DENIED" });
     }
     let input: unknown;
-    if (operation === "login" || operation === "verify" || isEnrollment(operation)) {
+    if (
+      operation === "login" ||
+      operation === "verify" ||
+      isEnrollment(operation)
+    ) {
       if (
         request.headers.get("content-type")?.split(";")[0].trim() !==
         "application/json"
@@ -94,8 +95,8 @@ export async function handle(
         !(isEnrollment(operation)
           ? validEnrollmentBody(operation, input)
           : operation === "login"
-          ? validLoginBody(input)
-          : validVerificationBody(input))
+            ? validLoginBody(input)
+            : validVerificationBody(input))
       ) {
         return problem(400, operation, { code: "VALIDATION_FAILED" });
       }
@@ -120,14 +121,13 @@ export async function handle(
     if (result.status >= 400) {
       response = problem(result.status, operation, result.body);
     } else {
-      const output =
-        isEnrollment(operation)
-          ? operation === "enrollmentSetup"
-            ? parseEnrollmentSetup(result.body)
-            : operation === "enrollmentComplete"
-              ? parseEnrollmentComplete(result.body)
-              : parseEnrollmentState(result.body)
-          : operation === "login"
+      const output = isEnrollment(operation)
+        ? operation === "enrollmentSetup"
+          ? parseEnrollmentSetup(result.body)
+          : operation === "enrollmentComplete"
+            ? parseEnrollmentComplete(result.body)
+            : parseEnrollmentState(result.body)
+        : operation === "login"
           ? parseChallenge(result.body)
           : operation === "verify"
             ? parseVerification(result.body)
@@ -149,12 +149,28 @@ export async function handle(
       } else {
         if (result.status !== 200 || !output) return problem(502, operation);
         if (operation === "enrollmentExchange") {
-          const issued = platformCookies(result.cookies.map((item) => item.split(";")[0]).join("; "), config.secure);
-          if (!issued.csrf || !issued.header.includes(cookieNames(config.secure).challenge + "=v1.")) return problem(502, operation);
+          const issued = platformCookies(
+            result.cookies.map((item) => item.split(";")[0]).join("; "),
+            config.secure,
+          );
+          if (
+            !issued.csrf ||
+            !issued.header.includes(
+              cookieNames(config.secure).challenge + "=v1.",
+            )
+          )
+            return problem(502, operation);
         }
         if (operation === "enrollmentComplete") {
-          const cleared = new Set(result.cookies.map((item) => item.split("=")[0]));
-          if (!Object.values(cookieNames(config.secure)).every((name) => cleared.has(name))) return problem(502, operation);
+          const cleared = new Set(
+            result.cookies.map((item) => item.split("=")[0]),
+          );
+          if (
+            !Object.values(cookieNames(config.secure)).every((name) =>
+              cleared.has(name),
+            )
+          )
+            return problem(502, operation);
         }
         if (operation === "login" || operation === "verify") {
           const issued = platformCookies(

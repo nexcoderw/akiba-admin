@@ -242,7 +242,13 @@ export function LoginForm({
               </button>
             }
           />
-          <Button type="submit" fullWidth loadingLabel="Signing in…">
+          <Button
+            type="submit"
+            fullWidth
+            icon={<Icon name="login" />}
+            loadingIconOnly
+            loadingLabel="Signing in…"
+          >
             Sign in
           </Button>
         </Form>

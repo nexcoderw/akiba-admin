@@ -17,4 +17,3 @@ Support password managers, autocomplete and paste. Use backend-defined expiratio
 On logout, account switch, expiration, revocation or security-sensitive changes, clear identity-derived client state and invalidate relevant navigation data. Never flash a previous user's private content. Confirm backend cookie clearing instead of displaying success after a failed logout.
 
 Respect restricted recovery and step-up flows; do not grant dashboard access until the backend confirms completion. Handle expired challenges with a clear restart path. Protected server reads and mutations still require authorization even after a layout checked the session.
-

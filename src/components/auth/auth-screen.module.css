@@ -1,131 +1,179 @@
+/* ---------- Page ---------- */
 .screen {
-  min-block-size: 100dvh;
+  position: relative;
+  isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  background: var(--ui-surface);
+  place-items: center;
+  min-block-size: 100dvh;
+  padding-block: max(1.5rem, env(safe-area-inset-top))
+    max(1.5rem, env(safe-area-inset-bottom));
+  padding-inline: 1rem;
+  overflow: hidden;
+  background: var(--background);
   color: var(--ui-text);
 }
-.story {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
+
+/* Two soft brand-tinted glows give depth without adding content. */
+.screen::before,
+.screen::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inline-size: clamp(18rem, 42vw, 36rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+.screen::before {
+  inset-block-start: -10rem;
+  inset-inline-start: -8rem;
+  background: var(--brand-200);
+  opacity: 0.6;
+}
+
+.screen::after {
+  inset-block-end: -12rem;
+  inset-inline-end: -8rem;
+  background: var(--brand-100);
+  opacity: 0.9;
+}
+
+.shell {
+  display: grid;
+  justify-items: center;
+  gap: 2rem;
+  inline-size: 100%;
+  max-inline-size: 27rem;
   min-inline-size: 0;
-  padding: clamp(2rem, 5vw, 5rem);
-  background: var(--brand-50);
-  color: var(--ui-text);
 }
+
+/* ---------- Brand ---------- */
 .brand {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
   gap: 0.75rem;
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.06em;
+  border-radius: var(--radius-pill);
   color: var(--ui-primary);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.05em;
   text-decoration: none;
-  border-radius: 0.5rem;
+  animation: rise 500ms var(--motion-ease) both;
 }
+
+.brand:hover {
+  color: var(--ui-primary-hover);
+}
+
 .brand:focus-visible {
   outline: 2px solid var(--ui-focus);
   outline-offset: 6px;
 }
+
 .mark {
   display: grid;
   place-items: center;
   inline-size: 2.5rem;
   block-size: 2.5rem;
-  border: 1px solid var(--brand-200);
-  border-radius: 0.75rem;
-  background: var(--ui-surface);
-  font-size: 1.75rem;
-  letter-spacing: -0.08em;
+  border-radius: 50%;
+  background: var(--ui-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--ui-on-primary);
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+.brand:hover .mark {
+  transform: rotate(-8deg) scale(1.06);
+}
+
 .brandDot {
   color: var(--brand-500);
 }
-.storyCopy {
-  margin-block: auto;
-  padding-block: 3rem;
-}
-.eyebrow {
-  margin-block-end: 1.5rem;
-  color: var(--ui-muted);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-}
-.storyTitle {
-  margin-block-end: 1.5rem;
-  font-size: var(--text-display);
-  color: var(--brand-900);
-  font-weight: 500;
-  line-height: 1.08;
-  letter-spacing: -0.055em;
-  overflow-wrap: anywhere;
-}
-.storyCopy > p:last-child {
-  max-inline-size: 25rem;
-  color: var(--ui-muted);
-  font-size: 1rem;
-  line-height: 1.8;
-}
-.assurance {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  max-inline-size: 25rem;
-  color: var(--ui-muted);
-  font-size: 0.8125rem;
-  line-height: 1.7;
-}
-.assurance svg {
-  flex-shrink: 0;
-  margin-block-start: 0.125rem;
-}
-.content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  min-inline-size: 0;
-  padding: 3rem clamp(1.25rem, 6vw, 6rem);
-}
+
+/* ---------- Card ---------- */
 .card {
   inline-size: 100%;
-  max-inline-size: 25rem;
+  min-inline-size: 0;
+  padding: clamp(1.5rem, 6vw, 2.5rem);
+  border: 1px solid var(--ui-divider);
+  border-radius: 2rem;
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow);
+  animation: rise 600ms var(--motion-ease) 80ms both;
 }
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  color: var(--ui-muted);
-  font-size: 0.75rem;
-  text-align: center;
+
+/* ---------- Motion ---------- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
-.footer svg {
-  inline-size: 0.875rem;
-  block-size: 0.875rem;
-  flex-shrink: 0;
-}
-@media (max-width: 760px) {
+
+/* ---------- Responsive ---------- */
+@media (max-width: 30rem) {
   .screen {
-    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 0.75rem;
   }
-  .story {
-    gap: 0;
-    padding: 1.25rem 1.5rem;
+
+  .shell {
+    gap: 1.5rem;
   }
-  .brand {
-    font-size: 1.75rem;
+
+  .card {
+    padding: 1.5rem 1.25rem;
+    border-radius: 1.75rem;
   }
-  .storyCopy,
-  .assurance {
+}
+
+/* Short viewports (landscape phones): keep the card reachable, not centered off-screen. */
+@media (max-block-size: 36rem) {
+  .screen {
+    place-items: start center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand,
+  .card {
+    animation: none;
+  }
+
+  .mark {
+    transition: none;
+  }
+
+  .brand:hover .mark {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .screen::before,
+  .screen::after {
     display: none;
   }
-  .content {
-    padding: 2.5rem 1.25rem;
+
+  .card {
+    border-color: CanvasText;
+  }
+
+  .mark {
+    border: 1px solid CanvasText;
+    background: transparent;
+    color: CanvasText;
+  }
+
+  .brand:focus-visible {
+    outline-color: Highlight;
   }
 }

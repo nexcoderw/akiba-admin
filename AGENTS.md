@@ -6,6 +6,7 @@ This repository owns the Akiba platform administration frontend. Before every ta
 
 - Protect identities, effective permissions, tenant boundaries and private data.
 - Keep rendering, navigation, input and network work fast through measured, bounded implementations.
+- Every styled component file owns a same-name CSS Module; components must not share module imports. See [.agents/styling.md](.agents/styling.md).
 - Make every workflow clear, accessible, responsive and recoverable.
 - The API owns authentication, authorization and business policy; the database repository owns Prisma and migrations. Frontend visibility is not enforcement.
 - Preserve user changes. Do not automatically commit, push, publish or deploy.

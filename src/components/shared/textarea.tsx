@@ -1,7 +1,7 @@
 import type { ReactNode, Ref, TextareaHTMLAttributes } from "react";
 import { descriptionIds, Field, type FieldProps } from "./field";
 import { Icon } from "./icon";
-import styles from "./controls.module.css";
+import styles from "./textarea.module.css";
 
 export type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "id"> &
   FieldProps & { ref?: Ref<HTMLTextAreaElement>; icon?: ReactNode };

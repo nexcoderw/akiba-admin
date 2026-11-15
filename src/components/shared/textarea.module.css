@@ -1,4 +1,7 @@
-.control { position: relative; min-inline-size: 0; }
+.control {
+  position: relative;
+  min-inline-size: 0;
+}
 
 .input {
   display: block;
@@ -13,20 +16,39 @@
   font: inherit;
   font-size: 0.9375rem;
   line-height: 1.5;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
-.input::placeholder { color: var(--ui-muted); opacity: 1; }
+.input::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
 
-.input:hover:not(:disabled) { border-color: var(--ui-border-hover); }
+.input:hover:not(:disabled) {
+  border-color: var(--ui-border-hover);
+}
 
-.input:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; border-color: var(--ui-primary); }
+.input:focus-visible {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 3px;
+  border-color: var(--ui-primary);
+}
 
-.input[aria-invalid="true"] { border-color: var(--ui-danger); }
+.input[aria-invalid="true"] {
+  border-color: var(--ui-danger);
+}
 
-.input:disabled { background: var(--ui-subtle); color: var(--ui-muted); cursor: not-allowed; }
+.input:disabled {
+  background: var(--ui-subtle);
+  color: var(--ui-muted);
+  cursor: not-allowed;
+}
 
-.input:read-only:not(select):not(button) { background: var(--ui-subtle); }
+.input:read-only:not(select):not(button) {
+  background: var(--ui-subtle);
+}
 
 .leadingIcon {
   position: absolute;
@@ -38,24 +60,42 @@
   pointer-events: none;
 }
 
-.leadingIcon { inset-inline-start: 0.9375rem; }
+.leadingIcon {
+  inset-inline-start: 0.9375rem;
+}
 
-.leadingIcon svg { inline-size: 1.125rem; block-size: 1.125rem; }
+.leadingIcon svg {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+}
 
-.textarea { min-block-size: 7.5rem; resize: vertical; }
+.textarea {
+  min-block-size: 7.5rem;
+  resize: vertical;
+}
 
-.textareaIcon { inset-block-start: 1.5rem; }
+.textareaIcon {
+  inset-block-start: 1.5rem;
+}
 
 @media (pointer: coarse) {
-  .input { font-size: 1rem; }
+  .input {
+    font-size: 1rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .input { transition: none; }
+  .input {
+    transition: none;
+  }
 }
 
 @media (forced-colors: active) {
-  .input { border-color: CanvasText; }
+  .input {
+    border-color: CanvasText;
+  }
 
-  .input:focus-visible { outline-color: Highlight; }
+  .input:focus-visible {
+    outline-color: Highlight;
+  }
 }

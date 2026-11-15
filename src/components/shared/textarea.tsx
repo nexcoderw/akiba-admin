@@ -21,9 +21,17 @@ export function Textarea({
   ref,
   ...props
 }: TextareaProps) {
+  const isInvalid = Boolean(error) || props["aria-invalid"] === true;
+
   return (
     <Field id={id} label={label} hint={hint} error={error} required={required}>
-      <div className={styles.control}>
+      <div
+        className={styles.control}
+        data-invalid={isInvalid || undefined}
+        data-disabled={props.disabled || undefined}
+      >
+        {/* Animated gradient ring, revealed on focus (decorative only). */}
+        <span className={styles.glow} aria-hidden="true" />
         <span
           className={`${styles.leadingIcon} ${styles.textareaIcon}`}
           aria-hidden="true"

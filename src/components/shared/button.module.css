@@ -1,79 +1,205 @@
+/* ---------- Base (primary) ---------- */
 .button {
+  --btn-bg: linear-gradient(135deg, var(--brand-700), var(--brand-500));
+  --btn-bg-hover: linear-gradient(135deg, var(--brand-800), var(--brand-600));
+  --btn-glow: rgb(62 15 141 / 28%);
+
   position: relative;
+  isolation: isolate;
   display: inline-grid;
   place-items: center;
   min-inline-size: 2.75rem;
   min-block-size: 3rem;
   max-inline-size: 100%;
-  padding: 0.75rem 1.25rem;
+  padding: 1rem 1.75rem;
   border: 1px solid transparent;
-  border-radius: var(--ui-radius);
-  background: var(--ui-primary);
+  border-radius: var(--radius-pill);
+  background: var(--btn-bg);
+  background-origin: border-box;
   color: var(--ui-on-primary);
   font: inherit;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   line-height: 1.5;
+  letter-spacing: 0.005em;
   cursor: pointer;
+  box-shadow:
+    0 1px 2px rgb(37 6 85 / 20%),
+    0 6px 16px -6px var(--btn-glow),
+    inset 0 1px 0 rgb(255 255 255 / 22%);
   transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
-  isolation: isolate;
+    transform 220ms var(--motion-ease),
+    box-shadow 260ms var(--motion-ease),
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hover layer: a second gradient fades in (gradients can't transition directly). */
+.button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--btn-bg-hover);
+  opacity: 0;
+  transition: opacity 260ms var(--motion-ease);
 }
 
 .button:hover:not(:disabled) {
-  background: var(--ui-primary-hover);
-  box-shadow: var(--shadow-button);
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgb(37 6 85 / 18%),
+    0 14px 26px -8px var(--btn-glow),
+    inset 0 1px 0 rgb(255 255 255 / 28%);
 }
+
+.button:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow:
+    0 1px 2px rgb(37 6 85 / 22%),
+    0 3px 8px -4px var(--btn-glow),
+    inset 0 2px 4px rgb(0 0 0 / 14%);
+  transition-duration: 90ms;
+}
+
 .button:focus-visible {
   outline: 2px solid var(--ui-primary);
   outline-offset: 3px;
 }
+
+/* ---------- Variants ---------- */
 .button[data-variant="secondary"] {
+  --btn-bg: var(--ui-surface);
+  --btn-bg-hover: var(--brand-50);
+  --btn-glow: rgb(62 15 141 / 16%);
+
   border-color: var(--ui-border);
-  background: var(--ui-surface);
   color: var(--ui-text);
+  box-shadow: var(--shadow-panel);
 }
-.button[data-variant="secondary"]:hover:not(:disabled),
-.button[data-variant="ghost"]:hover:not(:disabled) {
-  background: var(--ui-subtle);
+
+.button[data-variant="secondary"]:hover:not(:disabled) {
   border-color: var(--ui-border-hover);
+  color: var(--ui-primary);
+  box-shadow:
+    0 2px 4px rgb(37 6 85 / 8%),
+    0 12px 22px -10px var(--btn-glow);
+}
+
+.button[data-variant="ghost"] {
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--ui-accent);
+
+  color: var(--ui-text);
   box-shadow: none;
 }
-.button[data-variant="ghost"] {
-  background: transparent;
-  color: var(--ui-text);
+
+.button[data-variant="ghost"]:hover:not(:disabled) {
+  color: var(--ui-primary);
+  box-shadow: none;
 }
+
 .button[data-variant="danger"] {
-  background: var(--ui-danger);
+  --btn-bg: linear-gradient(135deg, var(--ui-danger-hover), var(--ui-danger));
+  --btn-bg-hover: linear-gradient(135deg, var(--ui-danger-hover), #7a1a12);
+  --btn-glow: rgb(180 35 24 / 30%);
+
   color: var(--ui-on-danger);
+  box-shadow:
+    0 1px 2px rgb(100 20 12 / 25%),
+    0 6px 16px -6px var(--btn-glow),
+    inset 0 1px 0 rgb(255 255 255 / 20%);
 }
-.button[data-variant="danger"]:hover:not(:disabled) {
-  background: var(--ui-danger-hover);
+
+.button[data-variant="danger"]:focus-visible {
+  outline-color: var(--ui-danger);
 }
+
+/* ---------- Sizes ---------- */
 .button[data-size="sm"] {
   min-block-size: 2.75rem;
-  padding: 0.625rem 0.875rem;
+  padding: 0.625rem 1.25rem;
   font-size: 0.8125rem;
 }
+
 .button[data-size="lg"] {
   min-block-size: 3.5rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem 2.25rem;
   font-size: 1rem;
 }
+
 .button[data-full-width] {
   inline-size: 100%;
 }
+
+/* ---------- Disabled / pending ---------- */
 .button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+  box-shadow: none;
 }
+
 .button[data-pending] {
   cursor: progress;
   opacity: 1;
 }
+
+/* ---------- Light sweep ---------- */
+.shine {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.shine::before {
+  content: "";
+  position: absolute;
+  inset-block: -10%;
+  inset-inline-start: 0;
+  inline-size: 45%;
+  background: linear-gradient(
+    105deg,
+    transparent,
+    rgb(255 255 255 / 38%),
+    transparent
+  );
+  transform: translateX(-140%) skewX(-20deg);
+}
+
+.button:hover:not(:disabled):not([data-pending]) .shine::before {
+  transform: translateX(340%) skewX(-20deg);
+  transition: transform 750ms var(--motion-ease);
+}
+
+.button[data-variant="secondary"] .shine::before,
+.button[data-variant="ghost"] .shine::before {
+  background: linear-gradient(
+    105deg,
+    transparent,
+    rgb(122 71 197 / 16%),
+    transparent
+  );
+}
+
+/* While working, the sweep loops to show progress. */
+.button[data-pending] .shine::before {
+  animation: sweep 1.4s var(--motion-ease) infinite;
+}
+
+/* ---------- Content ---------- */
 .content {
+  position: relative;
+  z-index: 1;
   grid-area: 1 / 1;
   display: inline-flex;
   align-items: center;
@@ -82,21 +208,38 @@
   min-inline-size: 0;
   overflow-wrap: anywhere;
 }
+
 .label {
   min-inline-size: 0;
 }
+
 .button[data-pending] .content {
   visibility: hidden;
 }
+
 .icon {
   display: inline-flex;
   flex-shrink: 0;
+  transition: transform 260ms var(--motion-ease);
 }
+
 .icon svg {
   inline-size: 1.125rem;
   block-size: 1.125rem;
 }
+
+.button:hover:not(:disabled) .icon {
+  transform: translateX(3px);
+}
+
+.button:active:not(:disabled) .icon {
+  transform: translateX(1px) scale(0.92);
+}
+
+/* ---------- Loading ---------- */
 .loading {
+  position: relative;
+  z-index: 1;
   grid-area: 1 / 1;
   visibility: hidden;
   display: flex;
@@ -107,6 +250,7 @@
   overflow-wrap: anywhere;
   font-size: 0.8125rem;
 }
+
 .button[data-pending] .loading {
   visibility: visible;
 }
@@ -118,9 +262,11 @@
   inline-size: 1.25rem;
   block-size: 1.25rem;
 }
+
 .button[data-pending] .orbit {
   animation: orbit 1.2s linear infinite;
 }
+
 .orbit > span {
   position: absolute;
   inline-size: 0.3125rem;
@@ -128,47 +274,161 @@
   border-radius: 50%;
   background: currentColor;
 }
+
 .orbit > span:nth-child(1) {
   inset-block-start: 0;
   inset-inline-start: 0.46875rem;
 }
+
 .orbit > span:nth-child(2) {
   inset-block-end: 0.125rem;
   inset-inline-end: 0.0625rem;
   opacity: 0.6;
 }
+
 .orbit > span:nth-child(3) {
   inset-block-end: 0.125rem;
   inset-inline-start: 0.0625rem;
   opacity: 0.3;
 }
+
+/* ---------- Error ---------- */
+.button[data-failed] {
+  animation: shake 400ms var(--motion-ease) 1;
+}
+
 .error {
   display: block;
   margin-block-start: 0.5rem;
+  padding-inline: 1rem;
   color: var(--ui-danger);
   font-size: 0.8125rem;
   line-height: 1.6;
+  animation: error-in 280ms var(--motion-ease) both;
 }
+
+/* ---------- Keyframes ---------- */
 @keyframes orbit {
   to {
     transform: rotate(360deg);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .button {
-    transition: none;
+
+@keyframes sweep {
+  from {
+    transform: translateX(-140%) skewX(-20deg);
   }
+  to {
+    transform: translateX(340%) skewX(-20deg);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    translate: 0;
+  }
+  20% {
+    translate: -6px;
+  }
+  40% {
+    translate: 5px;
+  }
+  60% {
+    translate: -3px;
+  }
+  80% {
+    translate: 2px;
+  }
+}
+
+@keyframes error-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 30rem) {
+  .button {
+    padding-inline: 1.375rem;
+  }
+
+  .button[data-size="lg"] {
+    padding-inline: 1.75rem;
+  }
+}
+
+/* Touch: no sticky hover lift, keep the press feedback. */
+@media (hover: none) {
+  .button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .button:hover:not(:disabled) .icon {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button::before,
+  .icon,
+  .error {
+    transition: none;
+    animation: none;
+  }
+
+  .button:hover:not(:disabled),
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .button:hover:not(:disabled) .icon,
+  .button:active:not(:disabled) .icon {
+    transform: none;
+  }
+
+  .shine {
+    display: none;
+  }
+
+  .button[data-failed] {
+    animation: none;
+  }
+
   .button[data-pending] .orbit {
     animation: none;
   }
 }
+
+/* Windows High Contrast: gradients and shadows are removed, so use system colors. */
 @media (forced-colors: active) {
   .button {
     border-color: ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
   }
+
+  .button::before,
+  .shine {
+    display: none;
+  }
+
+  .button:disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+
   .button:focus-visible {
     outline-color: Highlight;
   }
+
   .orbit > span {
     background: ButtonText;
   }

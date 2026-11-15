@@ -7,6 +7,9 @@ This repository owns the Akiba platform administration frontend. Before every ta
 - Protect identities, effective permissions, tenant boundaries and private data.
 - Keep rendering, navigation, input and network work fast through measured, bounded implementations.
 - Every styled component file owns a same-name CSS Module; components must not share module imports. See [.agents/styling.md](.agents/styling.md).
+- Authentication UI routes and their shared layout belong in src/app/(auth); authorized platform pages belong in src/app/(platform).
+- Use the light-only theme, Outfit font and primary color #3E0F8D. Reuse global design tokens and component-owned CSS Modules.
+- Never store tokens, profiles, preferences or other application data in localStorage or sessionStorage. Keep transient state in memory and sessions in server-managed HttpOnly cookies.
 - Make every workflow clear, accessible, responsive and recoverable.
 - The API owns authentication, authorization and business policy; the database repository owns Prisma and migrations. Frontend visibility is not enforcement.
 - Preserve user changes. Do not automatically commit, push, publish or deploy.

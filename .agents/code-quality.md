@@ -19,4 +19,3 @@ Do not add speculative abstractions, fallback identities, compatibility aliases 
 Follow the actual lint configuration. Do not disable rules globally to make an isolated problem disappear. Explain deliberate exceptions locally with a reason and verification plan.
 
 Human-run checks and source review provide different evidence; report each honestly.
-

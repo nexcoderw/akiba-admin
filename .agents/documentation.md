@@ -19,4 +19,3 @@ Keep policy centralized: link to the owning topic instead of duplicating long se
 Report exact executed checks and unverified work. Never present source inspection as a live test, performance measurement or production-readiness assessment.
 
 When architecture or tooling changes, update the affected rules in the same task. Preserve the generated Next.js instruction block. Rules guide engineering; they are not executable enforcement, proof of tenant isolation or a substitute for security review.
-

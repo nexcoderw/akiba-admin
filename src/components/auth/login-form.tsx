@@ -22,11 +22,9 @@ import {
 import { LogoutButton } from "./logout-button";
 import styles from "./login-form.module.css";
 
-type Step =
-  | { kind: "password" }
-  | { kind: "mfa"; challenge: Challenge | null }
-  | { kind: "confirming" }
-  | { kind: "recovery" };
+type Step = { kind: "password" } | { kind: "otp"; challenge: Challenge | null };
+
+type VerificationState = "input" | "checking" | "retry" | "recovery-required";
 
 export function LoginForm({
   pendingOnLoad,
@@ -38,8 +36,10 @@ export function LoginForm({
   next: string;
 }) {
   const [step, setStep] = useState<Step>(
-    pendingOnLoad ? { kind: "mfa", challenge: null } : { kind: "password" },
+    pendingOnLoad ? { kind: "otp", challenge: null } : { kind: "password" },
   );
+  const [verificationState, setVerificationState] =
+    useState<VerificationState>("input");
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [method, setMethod] = useState<"totp" | "recovery_code">("totp");
@@ -58,7 +58,7 @@ export function LoginForm({
 
   useEffect(() => {
     if (step.kind !== "password") heading.current?.focus();
-    if (step.kind !== "mfa" || !step.challenge) return;
+    if (step.kind !== "otp" || !step.challenge) return;
     const timer = window.setTimeout(
       () => setChallengeExpired(true),
       Math.max(
@@ -86,9 +86,11 @@ export function LoginForm({
 
   async function confirmSession() {
     setProblem(undefined);
+    setVerificationState("checking");
     const result = await readSession();
     if (result.kind === "authenticated") {
       window.location.replace(safeDestination(next));
+      return;
     } else if (result.kind === "denied" || result.kind === "unavailable") {
       setProblem(result.problem);
     } else {
@@ -98,6 +100,17 @@ export function LoginForm({
         message:
           "Your session couldn't be confirmed. Start again or retry the session check.",
       });
+    }
+    setVerificationState("retry");
+  }
+
+  async function retrySessionCheck() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await confirmSession();
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -110,19 +123,14 @@ export function LoginForm({
     setVisible(false);
     setChallengeExpired(false);
     setMethod("totp");
+    setVerificationState("input");
     setStep({ kind: "password" });
   }
 
   const title =
-    step.kind === "password"
-      ? "Welcome back"
-      : step.kind === "mfa"
-        ? "Verify your sign-in"
-        : step.kind === "recovery"
-          ? "Recovery verification received"
-          : "Confirming your access";
+    step.kind === "password" ? "Welcome back" : "Verify your sign-in";
   const methods =
-    step.kind === "mfa" ? (step.challenge?.methods ?? ["totp"]) : [];
+    step.kind === "otp" ? (step.challenge?.methods ?? ["totp"]) : [];
   const canVerify =
     methods.includes("totp") || methods.includes("recovery_code");
 
@@ -135,13 +143,15 @@ export function LoginForm({
         <p>
           {step.kind === "password"
             ? "Sign in to your Akiba administration workspace."
-            : step.kind === "mfa"
-              ? method === "totp"
-                ? "Enter the six-digit code from your authenticator app."
-                : "Enter one of your unused recovery codes."
-              : step.kind === "recovery"
-                ? "Your recovery proof was accepted. Full administration access remains locked until authenticator recovery is completed."
-                : "We need to confirm your full platform session before continuing."}
+            : verificationState === "recovery-required"
+              ? "Your recovery proof was accepted, but authenticator recovery must be completed before you can continue."
+              : verificationState === "checking"
+                ? "Your verification was received. We’re confirming your platform session."
+                : verificationState === "retry"
+                  ? "Your verification was received. Confirm your platform session before continuing."
+                  : method === "totp"
+                    ? "Enter the six-digit code from your authenticator app."
+                    : "Enter one of your unused recovery codes."}
         </p>
       </header>
       {expiredSession && step.kind === "password" && (
@@ -195,7 +205,8 @@ export function LoginForm({
               setMethod(
                 challenge.methods.includes("totp") ? "totp" : "recovery_code",
               );
-              setStep({ kind: "mfa", challenge });
+              setVerificationState("input");
+              setStep({ kind: "otp", challenge });
             } catch (error: unknown) {
               showError(error);
             } finally {
@@ -252,8 +263,42 @@ export function LoginForm({
           </Button>
         </Form>
       )}
-      {step.kind === "mfa" &&
-        (canVerify ? (
+      {step.kind === "otp" &&
+        (verificationState === "recovery-required" ? (
+          <div className={styles.followUp}>
+            <p>
+              Authenticator repair is not available in this frontend milestone.
+              Contact your approved platform recovery administrator. This
+              recovery session cannot open the platform workspace.
+            </p>
+            <LogoutButton label="End recovery session" />
+          </div>
+        ) : verificationState === "checking" ? (
+          <p className={styles.information} role="status">
+            Confirming your platform session…
+          </p>
+        ) : verificationState === "retry" ? (
+          <div className={styles.followUp}>
+            <p>
+              Check your session before submitting another verification code.
+            </p>
+            <Button
+              fullWidth
+              pending={busy}
+              onClick={retrySessionCheck}
+              loadingLabel="Checking your session…"
+              icon={<Icon name="check" />}
+            >
+              Check session
+            </Button>
+            <LogoutButton
+              label="Cancel sign in"
+              disabled={busy}
+              fullWidth
+              icon={<Icon name="close" />}
+            />
+          </div>
+        ) : canVerify ? (
           <>
             {challengeExpired && (
               <p className={styles.problem} role="alert">
@@ -288,10 +333,9 @@ export function LoginForm({
                   const verified = await verifyMfa(method, value);
                   if (code.current) code.current.value = "";
                   if (verified.status === "mfa_recovery_required") {
-                    setStep({ kind: "recovery" });
+                    setVerificationState("recovery-required");
                     return;
                   }
-                  setStep({ kind: "confirming" });
                   await confirmSession();
                 } catch (error: unknown) {
                   if (
@@ -299,7 +343,7 @@ export function LoginForm({
                     (error.problem.status === 0 || error.problem.status >= 500)
                   ) {
                     if (code.current) code.current.value = "";
-                    setStep({ kind: "confirming" });
+                    setVerificationState("retry");
                     setProblem({
                       ...error.problem,
                       message:
@@ -402,35 +446,6 @@ export function LoginForm({
             </Button>
           </div>
         ))}
-      {step.kind === "confirming" && (
-        <div className={styles.actionRow}>
-          <Button
-            fullWidth
-            pending={busy}
-            onClick={confirmSession}
-            loadingLabel="Checking"
-            icon={<Icon name="check" />}
-          >
-            Check again
-          </Button>
-          <LogoutButton
-            label="Cancel"
-            disabled={busy}
-            fullWidth
-            icon={<Icon name="close" />}
-          />
-        </div>
-      )}
-      {step.kind === "recovery" && (
-        <div className={styles.followUp}>
-          <p>
-            Authenticator repair is not available in this frontend milestone.
-            Contact your approved platform recovery administrator. This recovery
-            session cannot open the platform workspace.
-          </p>
-          <LogoutButton label="End recovery session" />
-        </div>
-      )}
     </div>
   );
 }

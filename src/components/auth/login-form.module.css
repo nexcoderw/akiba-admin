@@ -76,13 +76,6 @@
   margin-block-start: 0.5rem;
   font-size: 0.6875rem;
 }
-.information {
-  border-inline-start: 2px solid var(--ui-primary);
-  padding-inline-start: 0.75rem;
-  color: var(--ui-muted);
-  font-size: 0.8125rem;
-  line-height: 1.7;
-}
 .secondaryActions {
   display: flex;
   flex-wrap: wrap;

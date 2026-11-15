@@ -13,10 +13,23 @@
   line-height: 1.5;
 }
 
-.required { color: var(--ui-muted); font-size: 0.75rem; font-weight: 400; }
+.required {
+  color: var(--ui-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
 
-.hint, .error { font-size: 0.8125rem; line-height: 1.6; overflow-wrap: anywhere; }
+.hint,
+.error {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
 
-.hint { color: var(--ui-muted); }
+.hint {
+  color: var(--ui-muted);
+}
 
-.error { color: var(--ui-danger); }
+.error {
+  color: var(--ui-danger);
+}

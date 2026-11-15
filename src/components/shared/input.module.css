@@ -183,18 +183,24 @@
   block-size: 1.125rem;
 }
 
-/* Hover and focus share one look: light chip with a primary-colored icon. */
+/* Hover and focus share one look: solid primary chip with a white icon. */
 .control:hover:not([data-disabled]) .leadingIcon,
 .control:focus-within .leadingIcon {
-  background: var(--ui-subtle);
-  color: var(--ui-primary);
+  background: var(--ui-primary);
+  color: var(--ui-on-primary);
+  transform: translateY(-50%) scale(1.06) rotate(-6deg);
 }
 
-.control[data-invalid] .leadingIcon,
-.control[data-invalid]:hover:not([data-disabled]) .leadingIcon,
-.control[data-invalid]:focus-within .leadingIcon {
+/* Resting error state, then the same filled look in danger colors. */
+.control[data-invalid] .leadingIcon {
   background: var(--ui-danger-surface);
   color: var(--ui-danger);
+}
+
+.control[data-invalid]:hover:not([data-disabled]) .leadingIcon,
+.control[data-invalid]:focus-within .leadingIcon {
+  background: var(--ui-danger);
+  color: var(--ui-on-danger);
 }
 
 /* ---------- Trailing action ---------- */
@@ -324,6 +330,7 @@
     animation: none;
   }
 
+  .control:hover:not([data-disabled]) .leadingIcon,
   .control:focus-within .leadingIcon {
     transform: translateY(-50%);
   }

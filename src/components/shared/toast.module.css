@@ -1,24 +1,31 @@
+/* ---------- Viewport + list ---------- */
 .viewport {
   position: fixed;
-  inset-block-start: max(1rem, env(safe-area-inset-top));
-  inset-inline: 1rem;
+  inset-block-start: max(0.5rem, env(safe-area-inset-top));
+  inset-inline: 0.5rem;
   z-index: var(--layer-toast);
   display: flex;
   justify-content: center;
   pointer-events: none;
 }
 
+/* Generous padding so shadows and the entrance spring aren't clipped by overflow. */
 .list {
   display: grid;
   gap: 0.75rem;
-  inline-size: min(100%, 28rem);
-  max-block-size: calc(100dvh - 3rem);
+  inline-size: min(100%, 29rem);
+  max-block-size: calc(100dvh - 2rem);
   margin: 0;
-  padding: 0.25rem;
+  padding: 0.5rem 0.5rem 1.25rem;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: none;
   list-style: none;
-  pointer-events: auto;
+  pointer-events: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
 }
 
 .srOnly {
@@ -30,41 +37,83 @@
   white-space: nowrap;
 }
 
+/* ---------- Toast ---------- */
 .toast {
+  --tone: var(--ui-success);
+  --tone-surface: var(--ui-success-surface);
+  --tone-on: var(--ui-on-primary);
+
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   min-inline-size: 0;
-  padding: 0.75rem;
-  border: 1px solid var(--ui-border);
-  border-radius: 1rem;
-  background: var(--ui-surface);
+  padding: 0.75rem 0.75rem 0.75rem 0.75rem;
+  border: 1px solid var(--ui-divider);
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(105deg, var(--tone-surface), var(--ui-surface) 60%),
+    var(--ui-surface);
   color: var(--ui-text);
-  box-shadow: var(--ui-shadow);
-  animation: arrive 180ms ease-out;
+  box-shadow:
+    0 1px 2px rgb(37 6 85 / 8%),
+    0 14px 28px -10px rgb(37 6 85 / 22%);
+  pointer-events: auto;
+  transform-origin: top center;
+  animation: arrive 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+@supports (color: color-mix(in srgb, red, blue)) {
+  .toast {
+    border-color: color-mix(in srgb, var(--tone) 28%, var(--ui-divider));
+  }
+}
+
+.toast[data-timed] {
+  padding-block-end: 1.125rem;
+}
+
+.toast[data-tone="error"] {
+  --tone: var(--ui-danger);
+  --tone-surface: var(--ui-danger-surface);
+  --tone-on: var(--ui-on-danger);
+}
+
+.toast[data-tone="warning"] {
+  --tone: var(--ui-warning);
+  --tone-surface: var(--ui-warning-surface);
+}
+
+.toast[data-tone="info"] {
+  --tone: var(--ui-info);
+  --tone-surface: var(--ui-info-surface);
+}
+
+.toast[data-leaving] {
+  pointer-events: none;
+  animation: leave 200ms ease-in both;
+}
+
+/* ---------- Icon chip ---------- */
 .icon {
   display: grid;
   place-items: center;
-  flex: 0 0 2.25rem;
-  block-size: 2.25rem;
-  border-radius: 0.75rem;
-  background: var(--ui-success-surface);
-  color: var(--ui-success);
+  flex: 0 0 2.5rem;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--tone);
+  color: var(--tone-on);
+  box-shadow: 0 4px 10px -3px color-mix(in srgb, var(--tone) 55%, transparent);
+  animation: icon-pop 480ms cubic-bezier(0.34, 1.56, 0.64, 1) 90ms both;
 }
-.toast[data-tone="error"] .icon {
-  background: var(--ui-danger-surface);
-  color: var(--ui-danger);
+
+.icon svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
 }
-.toast[data-tone="warning"] .icon {
-  background: var(--ui-warning-surface);
-  color: var(--ui-warning);
-}
-.toast[data-tone="info"] .icon {
-  background: var(--ui-info-surface);
-  color: var(--ui-info);
-}
+
+/* ---------- Text ---------- */
 .message {
   flex: 1;
   min-inline-size: 0;
@@ -73,52 +122,193 @@
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
+
 .title {
   margin-block-end: 0.125rem;
-  font-weight: 650;
+  font-weight: var(--weight-semibold);
 }
+
+/* ---------- Close ---------- */
 .close {
   display: grid;
   place-items: center;
   flex: 0 0 2.75rem;
+  inline-size: 2.75rem;
   min-block-size: 2.75rem;
-  margin: -0.25rem;
+  margin: -0.125rem;
   border: 0;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--ui-muted);
   cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    transform 200ms var(--motion-ease);
 }
+
+.close svg {
+  transition: transform 300ms var(--motion-ease);
+}
+
 .close:hover {
-  background: var(--ui-subtle);
-  color: var(--ui-text);
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  color: var(--tone);
 }
+
+.close:hover svg {
+  transform: rotate(90deg);
+}
+
+.close:active {
+  transform: scale(0.9);
+}
+
 .close:focus-visible {
   outline: 2px solid var(--ui-primary);
   outline-offset: -2px;
 }
+
+/* ---------- Countdown bar ---------- */
+.progress {
+  position: absolute;
+  inset-block-end: 0.5rem;
+  inset-inline: 1.5rem;
+  block-size: 3px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.progress::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--tone);
+  transform-origin: left center;
+  animation: countdown var(--toast-duration) linear forwards;
+}
+
+.toast[data-paused] .progress::before,
+.toast[data-leaving] .progress::before {
+  animation-play-state: paused;
+}
+
+/* ---------- Keyframes ---------- */
 @keyframes arrive {
   from {
     opacity: 0;
-    transform: translateY(-0.5rem);
+    transform: translateY(-1.25rem) scale(0.94);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
-@media (prefers-reduced-motion: reduce) {
+
+@keyframes leave {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.96);
+  }
+}
+
+@keyframes icon-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-20deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (min-width: 40rem) {
+  .viewport {
+    inset-block-start: max(1rem, env(safe-area-inset-top));
+    inset-inline: 1rem;
+  }
+
   .toast {
+    padding-inline-end: 1rem;
+  }
+}
+
+@media (max-width: 24rem) {
+  .toast {
+    gap: 0.5rem;
+    border-radius: 1.5rem;
+  }
+
+  .icon {
+    flex-basis: 2.25rem;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .icon {
     animation: none;
   }
+
+  .close,
+  .close svg {
+    transition: none;
+  }
+
+  .close:hover svg,
+  .close:active {
+    transform: none;
+  }
+
+  /* A moving bar is motion; drop it and rely on the timer alone. */
+  .progress {
+    display: none;
+  }
 }
+
+/* Windows High Contrast: gradients/shadows are stripped, so use system colors. */
 @media (forced-colors: active) {
   .toast {
     border-color: CanvasText;
+    background: Canvas;
   }
+
   .icon {
     border: 1px solid CanvasText;
+    background: transparent;
+    color: CanvasText;
+    box-shadow: none;
   }
+
+  .progress {
+    border: 1px solid CanvasText;
+    background: transparent;
+  }
+
+  .progress::before {
+    background: CanvasText;
+  }
+
   .close:focus-visible {
     outline-color: Highlight;
   }

@@ -13,10 +13,11 @@
   border-block-end: 1px solid var(--ui-border);
 }
 .brand {
+  text-decoration: none;
   color: var(--ui-primary);
   font-size: 2rem;
   font-weight: 700;
-  letter-spacing: -0.08em;
+  letter-spacing: -0.06em;
 }
 .brand:focus-visible {
   outline: 2px solid var(--ui-primary);
@@ -30,7 +31,7 @@
 }
 .welcome h1 {
   margin-block: 1.5rem 1rem;
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: var(--text-display);
   font-weight: 550;
   letter-spacing: -0.05em;
   line-height: 1.15;

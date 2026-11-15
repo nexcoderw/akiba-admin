@@ -17,4 +17,3 @@ Avoid broad use client boundaries, deeply nested global providers and copying la
 Keep markup stable during loading to reduce layout shifts. Review empty, error, long-content and responsive states alongside the happy path.
 
 Current styling is CSS Modules and global CSS. No component library is installed in the starting manifest. Reuse existing patterns before proposing a dependency.
-

@@ -2,15 +2,16 @@
 
 ## Current tooling and execution
 
-Only lint and build verification scripts exist in the starting manifest. No test runner, test script, typecheck script or formatter is configured. Recheck package.json before recommending commands.
+The manifest provides format, format:check, lint, build and test scripts. Prettier is the required formatter; install the declared exact development dependency before running it. Authentication contract and security-policy tests use Node's built-in test runner with TypeScript stripping (Node 22.18+). No third-party component runner or typecheck script is configured. Recheck package.json before recommending commands.
 
-Humans execute checks unless a later instruction authorizes execution. Do not invoke them indirectly. Provide the correct working directory and prerequisites. Existing commands are npm run lint and npm run build; they establish different things and neither replaces security or browser tests.
+Humans execute checks unless a later instruction authorizes execution. Do not invoke them indirectly. Provide the correct working directory and prerequisites. The required full sequence is npm run format:check, npm run lint, npm test and npm run build. Use npm run format first when formatting corrections are needed. Unit policies do not replace component, browser or live-backend tests.
 
-Do not invent npm test, test:e2e, format:check or typecheck scripts. A proposed testing setup requires an explicit dependency/configuration change and human installation.
+Do not invent test:e2e or typecheck scripts. Additional test infrastructure requires an explicit dependency/configuration change and human installation where needed.
 
 ## Meaningful coverage
 
 For functional changes, add appropriate regression coverage when a supported setup exists. Test observable behavior rather than implementation details. Prioritize:
+
 - Session expiration, restricted MFA/recovery states and logout cleanup.
 - Unauthorized platform access, forged IDs and cross-identity cache isolation.
 - Origin/CSRF rejection, malformed responses, redaction and unsafe redirects.
@@ -23,4 +24,3 @@ Do not remove meaningful security tests to make checks pass. Mocks do not prove 
 ## Reporting
 
 List exact executed commands and outcomes separately from static review. Report unexecuted checks and deployment dependencies explicitly. Documentation-only edits do not require invented unit tests. Performance claims require measurements; accessibility claims require relevant manual verification too.
-

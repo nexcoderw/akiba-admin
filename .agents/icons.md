@@ -17,4 +17,3 @@ Pair unfamiliar, destructive or security-sensitive actions with clear text. Do n
 SVG content must come from trusted sources. Do not inject untrusted SVG markup or allow script/event attributes. Decorative SVG should not capture keyboard focus.
 
 Review icons at small sizes, in supported themes, high contrast and narrow layouts. Do not duplicate text announcements by labeling both the control and its decorative child.
-

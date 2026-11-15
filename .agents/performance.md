@@ -19,4 +19,3 @@ Keep loading regions stable, show immediate pending feedback and preserve usable
 Measure representative navigation, input, large lists and slow/error paths on realistic devices and networks. Record baseline, change, conditions and tradeoffs. Treat p75 LCP ≤2.5 seconds, INP ≤200 milliseconds and CLS ≤0.1 as project targets, not measured achievements. Establish route-specific payload budgets from evidence.
 
 Humans execute profiling and builds unless explicitly authorized otherwise. Never claim speed, bundle reduction or production performance from source inspection alone. See [testing.md](testing.md).
-

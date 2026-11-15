@@ -1,6 +1,6 @@
 # Dependencies
 
-The starting stack is Next.js, React, React DOM, TypeScript, ESLint and the React Compiler plugin. No UI kit, query library, form library, test runner, formatter or icon library is assumed.
+The stack declares Next.js, React, React DOM, TypeScript, ESLint, the React Compiler plugin and an exact Prettier development dependency. Authentication-policy tests use Node's built-in runner. No UI kit, query library, form library, third-party test runner or icon library is assumed.
 
 ## Adding a package
 
@@ -19,4 +19,3 @@ Prefer narrow imports and avoid duplicate libraries solving the same problem. Do
 Inspect vulnerability findings in context; do not apply breaking upgrades or npm audit fix automatically. Never claim an audit was run when only the manifest was read.
 
 Preserve package-lock.json and the established package manager. Do not mix lockfiles. Explain human verification commands, migration risks and any unverified compatibility after changes.
-

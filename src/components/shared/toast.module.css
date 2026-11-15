@@ -2,7 +2,7 @@
   position: fixed;
   inset-block-start: max(1rem, env(safe-area-inset-top));
   inset-inline: 1rem;
-  z-index: 1000;
+  z-index: var(--layer-toast);
   display: flex;
   justify-content: center;
   pointer-events: none;
@@ -50,8 +50,8 @@
   flex: 0 0 2.25rem;
   block-size: 2.25rem;
   border-radius: 0.75rem;
-  background: var(--ui-accent);
-  color: var(--ui-primary);
+  background: var(--ui-success-surface);
+  color: var(--ui-success);
 }
 .toast[data-tone="error"] .icon {
   background: var(--ui-danger-surface);

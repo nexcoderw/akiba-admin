@@ -29,18 +29,15 @@ export function Field({
   error,
   required,
   children,
-}: FieldProps & { required?: boolean; children: ReactNode }) {
+}: FieldProps & { children: ReactNode }) {
   return (
     <div className={styles.field}>
       <label className={styles.label} id={`${id}-label`} htmlFor={id}>
         <span className={styles.labelText}>{label}</span>
-        {required ? (
-          <span className={styles.requiredBadge} aria-hidden="true">
-            <span className={styles.requiredMark}>*</span>
-            Required
+        {required && (
+          <span className={styles.requiredMark} aria-hidden="true">
+            *
           </span>
-        ) : (
-          <span className={styles.optionalBadge}>Optional</span>
         )}
       </label>
       {children}

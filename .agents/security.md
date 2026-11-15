@@ -19,4 +19,3 @@ Private responses must be no-store. Secrets must not enter URLs, browser storage
 Review CSP, framing, referrer policy, MIME protection and HTTPS at the actual deployment boundary. A CSP must be compatible with the installed Next.js rendering model; do not weaken it with blanket unsafe allowances to silence errors.
 
 Security reviews must cover denied requests, replay, stale sessions, cache isolation, response redaction and failure paths. Do not claim effective database RLS or production isolation from frontend checks.
-

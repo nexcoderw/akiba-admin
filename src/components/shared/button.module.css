@@ -24,7 +24,7 @@
 
 .button:hover:not(:disabled) {
   background: var(--ui-primary-hover);
-  box-shadow: 0 3px 10px rgb(15 118 110 / 18%);
+  box-shadow: var(--shadow-button);
 }
 .button:focus-visible {
   outline: 2px solid var(--ui-primary);

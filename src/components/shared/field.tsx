@@ -6,6 +6,7 @@ export interface FieldProps {
   label: string;
   hint?: string;
   error?: string;
+  required?: boolean;
 }
 
 export function descriptionIds(
@@ -32,8 +33,15 @@ export function Field({
   return (
     <div className={styles.field}>
       <label className={styles.label} id={`${id}-label`} htmlFor={id}>
-        {label}
-        {required && <span className={styles.required}> (required)</span>}
+        <span className={styles.labelText}>{label}</span>
+        {required ? (
+          <span className={styles.requiredBadge} aria-hidden="true">
+            <span className={styles.requiredMark}>*</span>
+            Required
+          </span>
+        ) : (
+          <span className={styles.optionalBadge}>Optional</span>
+        )}
       </label>
       {children}
       {hint && (

@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import { Icon, type IconName } from "./icon";
@@ -45,6 +46,9 @@ const icons: Record<ToastTone, IconName> = {
   info: "info",
   warning: "warning",
 };
+
+/** Keep in sync with the exit animation length in toast.module.css. */
+const EXIT_MS = 200;
 
 function subscribeVisibility(callback: () => void) {
   document.addEventListener("visibilitychange", callback);
@@ -178,6 +182,9 @@ function ToastItem({
 }) {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const leavingRef = useRef(false);
+  const exitTimer = useRef<number | undefined>(undefined);
   const hidden = useSyncExternalStore(
     subscribeVisibility,
     readVisibility,
@@ -186,13 +193,26 @@ function ToastItem({
   const remaining = useRef(toast.duration);
   const paused = hovered || focused || hidden;
 
+  // Plays the exit animation first, then asks the provider to remove the toast.
+  const requestDismiss = useCallback(() => {
+    if (leavingRef.current) return;
+    leavingRef.current = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      onDismiss(toast.id);
+      return;
+    }
+    setLeaving(true);
+    exitTimer.current = window.setTimeout(() => onDismiss(toast.id), EXIT_MS);
+  }, [onDismiss, toast.id]);
+
+  useEffect(() => {
+    return () => window.clearTimeout(exitTimer.current);
+  }, []);
+
   useEffect(() => {
     if (!toast.duration || paused) return;
     const started = performance.now();
-    const timer = window.setTimeout(
-      () => onDismiss(toast.id),
-      remaining.current,
-    );
+    const timer = window.setTimeout(requestDismiss, remaining.current);
     return () => {
       window.clearTimeout(timer);
       remaining.current = Math.max(
@@ -200,13 +220,17 @@ function ToastItem({
         remaining.current - (performance.now() - started),
       );
     };
-  }, [paused, toast.duration, toast.id, onDismiss]);
+  }, [paused, toast.duration, requestDismiss]);
 
   return (
     <li
       className={styles.toast}
       data-tone={toast.tone}
       data-toast-id={toast.id}
+      data-timed={toast.duration > 0 || undefined}
+      data-paused={paused || undefined}
+      data-leaving={leaving || undefined}
+      style={{ "--toast-duration": `${toast.duration}ms` } as CSSProperties}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
@@ -218,7 +242,7 @@ function ToastItem({
         if (event.key === "Escape") {
           event.preventDefault();
           event.stopPropagation();
-          onDismiss(toast.id);
+          requestDismiss();
         }
       }}
     >
@@ -233,10 +257,14 @@ function ToastItem({
         type="button"
         className={styles.close}
         aria-label={`Dismiss ${toast.tone} notification`}
-        onClick={() => onDismiss(toast.id)}
+        onClick={requestDismiss}
       >
         <Icon name="close" />
       </button>
+      {/* Countdown bar; pauses together with the dismissal timer. */}
+      {toast.duration > 0 && (
+        <span className={styles.progress} aria-hidden="true" />
+      )}
     </li>
   );
 }

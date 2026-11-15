@@ -1,4 +1,3 @@
-import { Icon } from "@/components/shared/icon";
 import styles from "./loading-state.module.css";
 
 export type LoadingStatePhase =
@@ -7,23 +6,19 @@ export type LoadingStatePhase =
 const copy: Record<LoadingStatePhase, { title: string; message: string }> = {
   "session-check": {
     title: "Checking your session",
-    message:
-      "We’re securely confirming your platform access before opening your workspace.",
+    message: "Confirming your access…",
   },
   "mfa-verification": {
     title: "Verifying your sign-in",
-    message:
-      "We’re checking your code and confirming your secure platform session.",
+    message: "Just a moment…",
   },
   workspace: {
     title: "Loading your workspace",
-    message:
-      "Your session is confirmed. We’re preparing the platform page for you.",
+    message: "Almost there…",
   },
   "session-expired": {
     title: "Returning to sign in",
-    message:
-      "Your session is no longer active. We’re taking you back to sign in.",
+    message: "Your session has ended.",
   },
 };
 
@@ -41,36 +36,18 @@ export function LoadingState({
       aria-live="polite"
       aria-busy="true"
     >
-      <div className={styles.card}>
-        <div className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">
-            a
-          </span>
-          <span>
-            akiba<span className={styles.brandDot}>.</span>
-          </span>
-        </div>
-
+      <div className={styles.content}>
         <div className={styles.loader} aria-hidden="true">
-          <span className={styles.loaderTrack} />
-          <span className={styles.lock}>
-            <Icon name="lock" />
-          </span>
+          <span className={styles.halo} />
+          <span className={styles.ringOuter} />
+          <span className={styles.ringInner} />
+          <span className={styles.mark}>a</span>
         </div>
 
         <div className={styles.copy}>
-          <p className={styles.eyebrow}>Secure platform access</p>
           <h1 className={styles.title}>{title}</h1>
           <p className={styles.message}>{message}</p>
         </div>
-
-        <div className={styles.progress} aria-hidden="true">
-          <span />
-        </div>
-        <p className={styles.footnote}>
-          <span className={styles.pulse} aria-hidden="true" />
-          Your workspace will appear when this is complete.
-        </p>
       </div>
     </section>
   );

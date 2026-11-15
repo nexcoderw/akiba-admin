@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import styles from "./controls.module.css";
+import styles from "./field.module.css";
 
 export interface FieldProps {
   id: string;

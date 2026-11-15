@@ -32,6 +32,18 @@ npm run dev -- --port 4000
 
 ## Platform authentication
 
+### Route groups and application theme
+
+Authentication UI pages and their shared route layout live under src/app/(auth). The login file is src/app/(auth)/login/page.tsx; its URL remains /login. The group layout renders the reusable AuthScreen presentation once, including while the page checks the session.
+
+Authorized platform pages live under src/app/(platform), whose layout requires a verified full platform session. API handlers remain in src/app/api/auth. Route groups organize pages without changing URLs, and never replace backend permission checks.
+
+Akiba uses a light-only theme with primary color #3E0F8D and the Outfit variable font, optimized through next/font. The root loads one Latin font family with swap behavior; browsers receive self-hosted font assets rather than a Google stylesheet. Build-time font retrieval still requires an available font download/cache.
+
+globals.css centralizes the purple palette, semantic status colors, h1–h6 scale, spacing, font weights, radii, shadows, stacking layers, focus treatment and common element/accessibility defaults. Component-specific styles stay in each component's matching CSS Module. No operating-system dark-mode override or theme persistence is used. Forced-colors and reduced-motion accessibility remain supported.
+
+localStorage and sessionStorage are prohibited for all application data, including tokens, profiles, permissions, drafts and preferences. No current application code uses either API. ESLint rejects direct globals and named property access/destructuring; do not bypass the policy with dynamic aliases or persistence libraries. Transient UI state stays in memory, session credentials stay in backend-managed HttpOnly cookies, and only the existing double-submit CSRF cookie is intentionally readable.
+
 ### Configuration and prerequisites
 
 Copy .env.local.example to an untracked .env.local if it does not already exist. The example matches the API examples: Next runs at http://localhost:4000 and Nest at http://localhost:3000. Both services must be started by the human. No frontend database connection or authentication secret is needed.
@@ -77,7 +89,9 @@ Confirmed 401 responses invalidate the protected view; 403 and network/server er
 
 The native unit suite in test/auth.test.mjs covers input contracts, full-session assurance, restricted recovery, safe errors, approved redirects, CSRF comparison, trusted origins and cookie isolation/attributes. It does not establish browser rendering, interaction accessibility or live backend guarantees. No checks have been executed by the agent.
 
-After running format:check, lint, npm test and build, manually verify the real flow against a permitted development API: password failure/success, TOTP failure/success/expiry, refresh with pending MFA, required labels and visibility toggle, rapid repeated submissions, restricted recovery, existing-session redirects, server revocation/expiration, safe retry after network failure, 403 handling, confirmed logout, multiple tabs, narrow layouts, keyboard/focus, reduced motion and dark mode. Browser/component automation and deployed end-to-end verification remain outstanding; no frontend test framework was installed.
+test/storage-policy.test.mjs exercises the configured ESLint restrictions against direct, qualified, bracket and destructured browser-storage access, while allowing transient in-memory state. These are authoring-policy checks rather than a browser sandbox; runtime authentication still depends on the canonical backend and protected cookies.
+
+After running format:check, lint, npm test and build, manually verify the real flow against a permitted development API: password failure/success, TOTP failure/success/expiry, refresh with pending MFA, required labels and visibility toggle, rapid repeated submissions, restricted recovery, existing-session redirects, server revocation/expiration, safe retry after network failure, 403 handling, confirmed logout, multiple tabs, narrow layouts, keyboard/focus, reduced motion and the light theme even with a dark operating-system preference. Browser/component automation and deployed end-to-end verification remain outstanding; no frontend test framework was installed.
 
 ## Shared components
 
@@ -252,6 +266,6 @@ The component implementation has not been browser-tested or built by the agent. 
 - Multiple selections serialize with getAll, disabled values are excluded, and uncontrolled forms reset correctly.
 - Single and multiple selects work with keyboard, outside click, Escape and long labels.
 - Toasts stay top-center, support dismissal/pause, remain bounded and announce through assistive technology.
-- Every control has a label, visible focus and useful disabled/error states at narrow widths, high zoom, in dark mode and with reduced motion.
+- Every control has a label, visible focus and useful disabled/error states at narrow widths, high zoom, with a dark operating-system preference (the application remains light) and with reduced motion.
 
 The shared components need no additional runtime dependencies. Prettier is a development-only formatter. The native authentication-policy tests supplement the manual checks above; API integration and server-side guarantees remain the responsibility of the consuming feature and canonical backend.

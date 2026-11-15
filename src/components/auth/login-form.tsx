@@ -125,9 +125,6 @@ export function LoginForm({
 
   return (
     <div className={styles.login}>
-      <div className={styles.badge}>
-        <Icon name="lock" /> SECURE SIGN-IN
-      </div>
       <header className={styles.header}>
         <h1 ref={heading} tabIndex={-1}>
           {title}
@@ -399,9 +396,6 @@ export function LoginForm({
           <LogoutButton label="End recovery session" />
         </div>
       )}
-      <p className={styles.help}>
-        <Icon name="info" /> For authorized platform administrators only.
-      </p>
     </div>
   );
 }

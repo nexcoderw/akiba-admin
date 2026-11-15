@@ -61,7 +61,10 @@ export function Icon({
   name,
   className = "",
   ...props
-}: Omit<HugeiconsIconProps, "icon" | "altIcon" | "showAlt" | "children" | "name"> & {
+}: Omit<
+  HugeiconsIconProps,
+  "icon" | "altIcon" | "showAlt" | "children" | "name"
+> & {
   name: IconName;
 }) {
   return (

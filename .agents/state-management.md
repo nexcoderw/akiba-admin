@@ -17,4 +17,3 @@ Cancel obsolete requests and ignore stale results. A slower prior search must no
 Optimistic updates are suitable only for reviewed reversible operations with rollback. Do not optimistically claim organization approval, delivery, owner activation, MFA completion or privilege assignment.
 
 Refresh from authoritative server results after changes. A cached permission flag can improve display, but cannot authorize a mutation. Review cache lifetimes and invalidation with [nextjs.md](nextjs.md).
-

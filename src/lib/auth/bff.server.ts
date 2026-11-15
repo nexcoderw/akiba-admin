@@ -11,6 +11,12 @@ import {
   safeProblem,
   validLoginBody,
   validVerificationBody,
+  isEnrollment,
+  needsCsrf,
+  validEnrollmentBody,
+  parseEnrollmentState,
+  parseEnrollmentSetup,
+  parseEnrollmentComplete,
   type AuthOperation,
 } from "./contracts";
 import { browserOriginAllowed, cookieNames, platformCookies } from "./policy";
@@ -48,7 +54,7 @@ function problem(
   );
 }
 
-async function handle(
+export async function handle(
   operation: AuthOperation,
   request: Request,
 ): Promise<Response> {
@@ -67,13 +73,13 @@ async function handle(
     const incoming = platformCookies(cookie, config.secure);
     const csrf = request.headers.get("x-platform-csrf-token");
     if (
-      (operation === "verify" || operation === "logout") &&
+      needsCsrf(operation) &&
       !csrfMatches(incoming.csrf, csrf)
     ) {
       return problem(403, operation, { code: "ACCESS_DENIED" });
     }
     let input: unknown;
-    if (operation === "login" || operation === "verify") {
+    if (operation === "login" || operation === "verify" || isEnrollment(operation)) {
       if (
         request.headers.get("content-type")?.split(";")[0].trim() !==
         "application/json"
@@ -85,7 +91,9 @@ async function handle(
         return problem(400, operation, { code: "VALIDATION_FAILED" });
       }
       if (
-        !(operation === "login"
+        !(isEnrollment(operation)
+          ? validEnrollmentBody(operation, input)
+          : operation === "login"
           ? validLoginBody(input)
           : validVerificationBody(input))
       ) {
@@ -113,14 +121,20 @@ async function handle(
       response = problem(result.status, operation, result.body);
     } else {
       const output =
-        operation === "login"
+        isEnrollment(operation)
+          ? operation === "enrollmentSetup"
+            ? parseEnrollmentSetup(result.body)
+            : operation === "enrollmentComplete"
+              ? parseEnrollmentComplete(result.body)
+              : parseEnrollmentState(result.body)
+          : operation === "login"
           ? parseChallenge(result.body)
           : operation === "verify"
             ? parseVerification(result.body)
             : operation === "session"
               ? parseSession(result.body)
               : null;
-      if (operation === "logout") {
+      if (operation === "logout" || operation === "enrollmentCancel") {
         if (result.status !== 204) return problem(502, operation);
         const cleared = new Set(
           result.cookies.map((item) => item.split("=")[0]),
@@ -134,6 +148,14 @@ async function handle(
         response = new Response(null, { status: 204, headers: privateHeaders });
       } else {
         if (result.status !== 200 || !output) return problem(502, operation);
+        if (operation === "enrollmentExchange") {
+          const issued = platformCookies(result.cookies.map((item) => item.split(";")[0]).join("; "), config.secure);
+          if (!issued.csrf || !issued.header.includes(cookieNames(config.secure).challenge + "=v1.")) return problem(502, operation);
+        }
+        if (operation === "enrollmentComplete") {
+          const cleared = new Set(result.cookies.map((item) => item.split("=")[0]));
+          if (!Object.values(cookieNames(config.secure)).every((name) => cleared.has(name))) return problem(502, operation);
+        }
         if (operation === "login" || operation === "verify") {
           const issued = platformCookies(
             result.cookies.map((item) => item.split(";")[0]).join("; "),

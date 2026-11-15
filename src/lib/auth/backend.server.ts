@@ -1,6 +1,6 @@
 import "server-only";
 
-import { AUTH_PATHS, type AuthOperation } from "./contracts";
+import { AUTH_PATHS, ENROLLMENT_PATHS, type AuthOperation } from "./contracts";
 import { approvedSetCookies, authConfig, platformCookies } from "./policy";
 
 export function getAuthConfig() {
@@ -64,7 +64,7 @@ export async function backendRequest(
   if (incoming.header) headers.set("Cookie", incoming.header);
   if (body !== undefined) headers.set("Content-Type", "application/json");
   if (csrf) headers.set("x-platform-csrf-token", csrf);
-  const response = await fetch(config.apiOrigin + AUTH_PATHS[operation], {
+  const response = await fetch(config.apiOrigin + { ...AUTH_PATHS, ...ENROLLMENT_PATHS }[operation], {
     method: operation === "session" ? "GET" : "POST",
     headers,
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),

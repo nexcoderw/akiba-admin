@@ -18,4 +18,3 @@ git commit -m "feat(admin): add example page"
 Never recommend git add . or git add -A. Before recommending a commit, inspect staged changes; git commit includes everything already staged. If unrelated staged work exists, explain that the human must isolate it first without discarding it. For a file mixing unrelated edits, recommend interactive staging and describe the intended portion.
 
 Account for each changed file. Do not claim a commit was created when only commands were supplied. Do not publish, deploy or trigger CI as a substitute for human verification.
-

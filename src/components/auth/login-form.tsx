@@ -246,7 +246,6 @@ export function LoginForm({
             type="submit"
             fullWidth
             icon={<Icon name="login" />}
-            loadingIconOnly
             loadingLabel="Signing in…"
           >
             Sign in

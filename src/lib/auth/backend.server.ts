@@ -64,14 +64,17 @@ export async function backendRequest(
   if (incoming.header) headers.set("Cookie", incoming.header);
   if (body !== undefined) headers.set("Content-Type", "application/json");
   if (csrf) headers.set("x-platform-csrf-token", csrf);
-  const response = await fetch(config.apiOrigin + { ...AUTH_PATHS, ...ENROLLMENT_PATHS }[operation], {
-    method: operation === "session" ? "GET" : "POST",
-    headers,
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    cache: "no-store",
-    redirect: "error",
-    signal: AbortSignal.timeout(25000),
-  });
+  const response = await fetch(
+    config.apiOrigin + { ...AUTH_PATHS, ...ENROLLMENT_PATHS }[operation],
+    {
+      method: operation === "session" ? "GET" : "POST",
+      headers,
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(25000),
+    },
+  );
   const setCookies = approvedSetCookies(
     response.headers.getSetCookie(),
     config.secure,

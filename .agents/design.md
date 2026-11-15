@@ -19,4 +19,3 @@ Do not expose implementation details, internal flags or database terminology unl
 Use readable tables with meaningful headings, appropriate density and discoverable filters. Avoid icon-only mystery actions. Format dates, amounts and counts consistently with the actual locale/time-zone contract; never guess currency or lose numeric precision.
 
 Support long names, translated text, keyboard use and small screens. Review [accessibility.md](accessibility.md) and [responsive.md](responsive.md) together. A visually polished screen is incomplete if its task cannot be completed accessibly.
-

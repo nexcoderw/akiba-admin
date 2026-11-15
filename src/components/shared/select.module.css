@@ -1,24 +1,80 @@
-.control {
-  position: relative;
-  min-inline-size: 0;
+/* Registered so the gradient ring can rotate smoothly (falls back to static). */
+@property --select-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
 }
 
+.control {
+  --select-height: calc(var(--control-height) + 0.25rem);
+
+  position: relative;
+  isolation: isolate;
+  min-inline-size: 0;
+  border-radius: var(--radius-pill);
+  transition:
+    transform 250ms var(--motion-ease),
+    box-shadow 250ms var(--motion-ease);
+}
+
+/* ---------- Animated ring (sits behind the field, peeks out 2px) ---------- */
+.glow {
+  position: absolute;
+  inset: -2px;
+  z-index: 0;
+  border-radius: var(--radius-pill);
+  background: conic-gradient(
+    from var(--select-angle),
+    var(--brand-700),
+    var(--brand-300),
+    var(--brand-500),
+    var(--brand-200),
+    var(--brand-700)
+  );
+  opacity: 0;
+  transform: scale(0.985);
+  transition:
+    opacity 250ms var(--motion-ease),
+    transform 350ms var(--motion-ease);
+  pointer-events: none;
+}
+
+.control:focus-within .glow,
+.control[data-open] .glow {
+  opacity: 1;
+  transform: scale(1);
+  animation: ring-spin 4s linear infinite;
+}
+
+.control:focus-within,
+.control[data-open] {
+  box-shadow:
+    0 8px 24px rgb(62 15 141 / 16%),
+    0 0 0 5px rgb(122 71 197 / 14%);
+}
+
+/* ---------- Field (native select + multi trigger) ---------- */
 .input {
+  position: relative;
+  z-index: 1;
   display: block;
   inline-size: 100%;
   min-inline-size: 0;
-  min-block-size: 3rem;
+  min-block-size: var(--select-height);
   border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius);
-  padding: 0.75rem 0.875rem 0.75rem 2.875rem;
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 3.5rem 0.75rem 3.375rem;
   background: var(--ui-surface);
   color: var(--ui-text);
   font: inherit;
   font-size: 0.9375rem;
+  font-weight: var(--weight-medium);
   line-height: 1.5;
+  box-shadow: var(--shadow-panel);
   transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
+    border-color 200ms ease,
+    background-color 200ms ease,
+    box-shadow 250ms var(--motion-ease);
 }
 
 .input::placeholder {
@@ -26,17 +82,29 @@
   opacity: 1;
 }
 
-.input:hover:not(:disabled) {
+.input:hover:not(:disabled):not(:focus) {
   border-color: var(--ui-border-hover);
+  box-shadow: 0 4px 14px rgb(37 6 85 / 10%);
 }
 
+.control:hover:not([data-disabled]):not(:focus-within):not([data-open]) {
+  transform: translateY(-1px);
+}
+
+/* The ring + halo are the focus indicator; the border blends into it. */
 .input:focus-visible {
-  outline: 2px solid var(--ui-primary);
-  outline-offset: 3px;
-  border-color: var(--ui-primary);
+  outline: none;
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.input[aria-invalid="true"] {
+.input:focus,
+.control[data-open] .input {
+  border-color: transparent;
+}
+
+.input[aria-invalid="true"],
+.input[data-invalid="true"] {
   border-color: var(--ui-danger);
 }
 
@@ -44,29 +112,56 @@
   background: var(--ui-subtle);
   color: var(--ui-muted);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .input:read-only:not(select):not(button) {
   background: var(--ui-subtle);
 }
 
+/* ---------- Native single select ---------- */
+.select {
+  appearance: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.select option {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+}
+
+.select option:disabled {
+  color: var(--ui-muted);
+}
+
+/* ---------- Icons (leading + trailing sit in round chips) ---------- */
 .leadingIcon,
 .trailingIcon {
   position: absolute;
-  inset-block-start: 1.5rem;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
+  inset-block-start: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  inline-size: 2.375rem;
+  block-size: 2.375rem;
+  border-radius: var(--radius-pill);
   color: var(--ui-muted);
+  transform: translateY(-50%);
   pointer-events: none;
+  transition:
+    background-color 250ms ease,
+    color 250ms ease,
+    transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .leadingIcon {
-  inset-inline-start: 0.9375rem;
+  inset-inline-start: 0.5rem;
+  background: var(--ui-subtle);
 }
 
 .trailingIcon {
-  inset-inline-end: 0.9375rem;
+  inset-inline-end: 0.5rem;
 }
 
 .leadingIcon svg {
@@ -74,45 +169,89 @@
   block-size: 1.125rem;
 }
 
+.trailingIcon svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.control:hover:not([data-disabled]) .leadingIcon,
+.control:hover:not([data-disabled]) .trailingIcon {
+  color: var(--ui-primary);
+}
+
+.control:focus-within .leadingIcon,
+.control[data-open] .leadingIcon {
+  background: var(--ui-primary);
+  color: var(--ui-on-primary);
+  transform: translateY(-50%) scale(1.06) rotate(-6deg);
+}
+
+.control:focus-within .trailingIcon,
+.control[data-open] .trailingIcon {
+  background: var(--ui-accent);
+  color: var(--ui-primary);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.control[data-invalid] .leadingIcon {
+  background: var(--ui-danger-surface);
+  color: var(--ui-danger);
+}
+
+.control[data-invalid]:focus-within .leadingIcon,
+.control[data-invalid][data-open] .leadingIcon {
+  background: var(--ui-danger);
+  color: var(--ui-on-danger);
+}
+
+.control[data-invalid]:focus-within .trailingIcon,
+.control[data-invalid][data-open] .trailingIcon {
+  background: var(--ui-danger-surface);
+  color: var(--ui-danger);
+}
+
+/* ---------- Error state ---------- */
+.control[data-invalid] .glow {
+  background: conic-gradient(
+    from var(--select-angle),
+    var(--ui-danger),
+    var(--ui-danger-hover),
+    var(--ui-danger),
+    var(--ui-danger-hover),
+    var(--ui-danger)
+  );
+}
+
+.control[data-invalid]:focus-within,
+.control[data-invalid][data-open] {
+  box-shadow:
+    0 8px 24px rgb(180 35 24 / 16%),
+    0 0 0 5px rgb(180 35 24 / 12%);
+}
+
+.control[data-invalid] {
+  animation: select-shake 400ms var(--motion-ease) 1;
+}
+
+/* ---------- Disabled ---------- */
+.control[data-disabled] {
+  opacity: 0.7;
+}
+
+.control[data-disabled] .leadingIcon {
+  background: transparent;
+}
+
+/* ---------- Hint ---------- */
 .hint {
+  padding: 0.75rem;
+  color: var(--ui-muted);
   font-size: 0.8125rem;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
 
-.hint {
-  color: var(--ui-muted);
-}
-
-.choiceInput {
-  flex: 0 0 auto;
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
-  margin-block-start: 0.125rem;
-  accent-color: var(--ui-primary);
-  cursor: pointer;
-}
-
-.choiceInput:focus-visible {
-  outline: 2px solid var(--ui-primary);
-  outline-offset: 3px;
-}
-
-.option:has(input:disabled) {
-  color: var(--ui-muted);
-  cursor: not-allowed;
-}
-
-.choiceInput:disabled {
-  cursor: not-allowed;
-}
-
-.select {
-  appearance: none;
-  padding-inline-end: 2.875rem;
-  cursor: pointer;
-}
-
+/* ---------- Multi select ---------- */
 .multiRoot {
   position: relative;
   min-inline-size: 0;
@@ -122,13 +261,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding-inline-end: 2.875rem;
   text-align: start;
   cursor: pointer;
 }
 
 .selectValue {
   flex: 1;
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -136,16 +275,22 @@
 
 .selectValue[data-placeholder] {
   color: var(--ui-muted);
+  font-weight: var(--weight-regular);
 }
 
+/* Selected-count badge pops in each time the number changes. */
 .count {
   flex-shrink: 0;
-  border-radius: 0.375rem;
-  padding: 0.125rem 0.4375rem;
-  background: var(--ui-accent);
-  color: var(--ui-primary);
+  min-inline-size: 1.5rem;
+  border-radius: var(--radius-pill);
+  padding: 0.125rem 0.5rem;
+  background: var(--ui-primary);
+  color: var(--ui-on-primary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
+  line-height: 1.4;
+  text-align: center;
+  animation: count-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .nativeProxy {
@@ -157,16 +302,19 @@
   white-space: nowrap;
 }
 
+/* ---------- Dropdown ---------- */
 .dropdown {
   position: absolute;
-  inset-block-start: calc(100% + 0.5rem);
+  inset-block-start: calc(100% + 0.625rem);
   inset-inline: 0;
   z-index: var(--layer-dropdown);
-  padding: 0.375rem;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius);
+  padding: 0.5rem;
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--radius-panel);
   background: var(--ui-surface);
   box-shadow: var(--ui-shadow);
+  transform-origin: top center;
+  animation: dropdown-in 220ms var(--motion-ease) both;
 }
 
 .dropdown[hidden] {
@@ -178,7 +326,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  padding-inline-start: 0.5rem;
+  padding-inline-start: 0.75rem;
   color: var(--ui-muted);
   font-size: 0.75rem;
 }
@@ -186,14 +334,19 @@
 .textButton {
   min-block-size: 2.75rem;
   min-inline-size: 2.75rem;
-  padding-inline: 0.5rem;
+  padding-inline: 1rem;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--ui-primary);
   font: inherit;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+.textButton:hover {
+  background: var(--ui-accent);
 }
 
 .textButton:focus-visible {
@@ -205,6 +358,8 @@
   max-block-size: min(16rem, 40dvh);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-300) transparent;
 }
 
 .option {
@@ -212,60 +367,262 @@
   align-items: flex-start;
   gap: 0.75rem;
   min-block-size: 2.75rem;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
   color: var(--ui-text);
   font-size: 0.875rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
   cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    transform 220ms var(--motion-ease),
+    color 180ms ease;
 }
 
 .option:hover,
 .option:focus-within {
   background: var(--ui-subtle);
+  transform: translateX(2px);
 }
 
 .option[data-selected] {
   background: var(--ui-accent);
+  color: var(--brand-800);
+  font-weight: var(--weight-medium);
+}
+
+.option:has(input:disabled) {
+  color: var(--ui-muted);
+  cursor: not-allowed;
+}
+
+.option:has(input:disabled):hover {
+  background: transparent;
+  transform: none;
+}
+
+/* Round custom checkbox with an animated tick. */
+.choiceInput {
+  flex: 0 0 auto;
+  display: grid;
+  place-content: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0.0625rem 0 0;
+  border: 1.5px solid var(--ui-border);
+  border-radius: 50%;
+  background: var(--ui-surface);
+  appearance: none;
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.choiceInput::after {
+  content: "";
+  inline-size: 0.3125rem;
+  block-size: 0.5625rem;
+  margin-block-start: -0.0625rem;
+  border: solid var(--ui-on-primary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.choiceInput:hover:not(:disabled) {
+  border-color: var(--ui-primary);
+}
+
+.choiceInput:checked {
+  border-color: var(--ui-primary);
+  background: var(--ui-primary);
+  transform: scale(1.08);
+}
+
+.choiceInput:checked::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.choiceInput:focus-visible {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 3px;
+}
+
+.choiceInput:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .dropdownHint {
-  padding: 0.625rem 0.5rem 0.25rem;
+  padding: 0.625rem 0.75rem 0.25rem;
   color: var(--ui-muted);
   font-size: 0.6875rem;
 }
 
+/* ---------- Keyframes ---------- */
+@keyframes ring-spin {
+  to {
+    --select-angle: 360deg;
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes count-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes select-shake {
+  0%,
+  100% {
+    translate: 0;
+  }
+  20% {
+    translate: -6px;
+  }
+  40% {
+    translate: 5px;
+  }
+  60% {
+    translate: -3px;
+  }
+  80% {
+    translate: 2px;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 30rem) {
+  .input {
+    padding-inline-start: 3.125rem;
+    padding-inline-end: 3.25rem;
+  }
+
+  .leadingIcon,
+  .trailingIcon {
+    inline-size: 2.125rem;
+    block-size: 2.125rem;
+  }
+
+  .dropdown {
+    padding: 0.375rem;
+  }
+}
+
+/* Touch devices: bigger target, 16px text to prevent iOS zoom, no hover lift. */
 @media (pointer: coarse) {
+  .control {
+    --select-height: 3.5rem;
+  }
+
   .input {
     font-size: 1rem;
+  }
+
+  .control:hover:not([data-disabled]):not(:focus-within):not([data-open]) {
+    transform: none;
+  }
+
+  .option:hover {
+    transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .input {
+  .control,
+  .glow,
+  .input,
+  .leadingIcon,
+  .trailingIcon,
+  .textButton,
+  .option,
+  .choiceInput,
+  .choiceInput::after {
     transition: none;
+  }
+
+  .control[data-invalid],
+  .dropdown,
+  .count,
+  .control:focus-within .glow,
+  .control[data-open] .glow {
+    animation: none;
+  }
+
+  .control:focus-within .leadingIcon,
+  .control[data-open] .leadingIcon {
+    transform: translateY(-50%);
+  }
+
+  .control:focus-within .trailingIcon,
+  .control[data-open] .trailingIcon {
+    transform: translateY(-50%);
+  }
+
+  .option:hover,
+  .option:focus-within,
+  .choiceInput:checked {
+    transform: none;
   }
 }
 
+/* Windows High Contrast: gradients/shadows are stripped, so use real outlines and native checkboxes. */
 @media (forced-colors: active) {
+  .glow {
+    display: none;
+  }
+
   .input,
   .dropdown {
     border-color: CanvasText;
   }
 
-  .input:focus-visible,
+  .input:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 3px;
+    border-color: Highlight;
+  }
+
   .choiceInput:focus-visible,
   .textButton:focus-visible {
     outline-color: Highlight;
+  }
+
+  .leadingIcon,
+  .trailingIcon {
+    background: transparent;
+    color: CanvasText;
+  }
+
+  .choiceInput {
+    appearance: auto;
+  }
+
+  .choiceInput::after {
+    display: none;
   }
 
   .option[data-selected],
   .count {
     outline: 1px solid Highlight;
   }
-}
-
-.input[data-invalid="true"] {
-  border-color: var(--ui-danger);
 }

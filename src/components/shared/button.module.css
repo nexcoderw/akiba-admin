@@ -1,0 +1,52 @@
+.button {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 2.75rem;
+  min-block-size: 3rem;
+  max-inline-size: 100%;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius);
+  background: var(--ui-primary);
+  color: var(--ui-on-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  isolation: isolate;
+}
+
+.button:hover:not(:disabled) { background: var(--ui-primary-hover); box-shadow: 0 3px 10px rgb(15 118 110 / 18%); }
+.button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; }
+.button[data-variant="secondary"] { border-color: var(--ui-border); background: var(--ui-surface); color: var(--ui-text); }
+.button[data-variant="secondary"]:hover:not(:disabled), .button[data-variant="ghost"]:hover:not(:disabled) { background: var(--ui-subtle); border-color: var(--ui-border-hover); box-shadow: none; }
+.button[data-variant="ghost"] { background: transparent; color: var(--ui-text); }
+.button[data-variant="danger"] { background: var(--ui-danger); color: var(--ui-on-danger); }
+.button[data-variant="danger"]:hover:not(:disabled) { background: var(--ui-danger-hover); }
+.button[data-size="sm"] { min-block-size: 2.75rem; padding: 0.625rem 0.875rem; font-size: 0.8125rem; }
+.button[data-size="lg"] { min-block-size: 3.5rem; padding: 1rem 1.5rem; font-size: 1rem; }
+.button[data-full-width] { inline-size: 100%; }
+.button:disabled { cursor: not-allowed; opacity: 0.55; }
+.button[data-pending] { cursor: progress; opacity: 1; }
+.content { grid-area: 1 / 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.625rem; min-inline-size: 0; overflow-wrap: anywhere; }
+.label { min-inline-size: 0; }
+.button[data-pending] .content { visibility: hidden; }
+.icon { display: inline-flex; flex-shrink: 0; }
+.icon svg { inline-size: 1.125rem; block-size: 1.125rem; }
+.loading { grid-area: 1 / 1; visibility: hidden; display: flex; align-items: center; justify-content: center; gap: 0.625rem; min-inline-size: 0; overflow-wrap: anywhere; font-size: 0.8125rem; }
+.button[data-pending] .loading { visibility: visible; }
+
+/* Three orbiting beads use transform/opacity only and occupy the icon's footprint. */
+.orbit { position: relative; flex: 0 0 1.25rem; inline-size: 1.25rem; block-size: 1.25rem; }
+.button[data-pending] .orbit { animation: orbit 1.2s linear infinite; }
+.orbit > span { position: absolute; inline-size: 0.3125rem; block-size: 0.3125rem; border-radius: 50%; background: currentColor; }
+.orbit > span:nth-child(1) { inset-block-start: 0; inset-inline-start: 0.46875rem; }
+.orbit > span:nth-child(2) { inset-block-end: 0.125rem; inset-inline-end: 0.0625rem; opacity: 0.6; }
+.orbit > span:nth-child(3) { inset-block-end: 0.125rem; inset-inline-start: 0.0625rem; opacity: 0.3; }
+.error { display: block; margin-block-start: 0.5rem; color: var(--ui-danger); font-size: 0.8125rem; line-height: 1.6; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .button { transition: none; } .button[data-pending] .orbit { animation: none; } }
+@media (forced-colors: active) { .button { border-color: ButtonText; } .button:focus-visible { outline-color: Highlight; } .orbit > span { background: ButtonText; } }

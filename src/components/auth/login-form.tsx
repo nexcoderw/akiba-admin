@@ -24,7 +24,7 @@ import styles from "./login-form.module.css";
 
 type Step = { kind: "password" } | { kind: "otp"; challenge: Challenge | null };
 
-type VerificationState = "input" | "checking" | "retry" | "recovery-required";
+type VerificationState = "input" | "retry" | "recovery-required";
 
 export function LoginForm({
   pendingOnLoad,
@@ -106,7 +106,6 @@ export function LoginForm({
 
   async function confirmSession() {
     clearErrorToast();
-    setVerificationState("checking");
     const result = await readSession();
     if (result.kind === "authenticated") {
       window.location.replace(safeDestination(next));
@@ -162,13 +161,11 @@ export function LoginForm({
             ? "Sign in to your Akiba administration workspace."
             : verificationState === "recovery-required"
               ? "Your recovery proof was accepted, but authenticator recovery must be completed before you can continue."
-              : verificationState === "checking"
-                ? "Your verification was received. We’re confirming your platform session."
-                : verificationState === "retry"
-                  ? "Your verification was received. Confirm your platform session before continuing."
-                  : method === "totp"
-                    ? "Enter the six-digit code from your authenticator app."
-                    : "Enter one of your unused recovery codes."}
+              : verificationState === "retry"
+                ? "Your verification was received. Confirm your platform session before continuing."
+                : method === "totp"
+                  ? "Enter the six-digit code from your authenticator app."
+                  : "Enter one of your unused recovery codes."}
         </p>
       </header>
       {step.kind === "password" && (
@@ -272,10 +269,6 @@ export function LoginForm({
             </p>
             <LogoutButton label="End recovery session" />
           </div>
-        ) : verificationState === "checking" ? (
-          <p className={styles.information} role="status">
-            Confirming your platform session…
-          </p>
         ) : verificationState === "retry" ? (
           <div className={styles.followUp}>
             <p>
@@ -331,6 +324,7 @@ export function LoginForm({
                 try {
                   const verified = await verifyMfa(method, value);
                   if (code.current) code.current.value = "";
+                  setOtp("");
                   if (verified.status === "mfa_recovery_required") {
                     setVerificationState("recovery-required");
                     return;

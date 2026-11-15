@@ -48,48 +48,98 @@ export const ENROLLMENT_PATHS = {
   enrollmentCancel: "/api/v1/platform/bootstrap/enrollment/cancel",
 } as const;
 
-export type AuthOperation = keyof typeof AUTH_PATHS | keyof typeof ENROLLMENT_PATHS;
+export type AuthOperation =
+  keyof typeof AUTH_PATHS | keyof typeof ENROLLMENT_PATHS;
 
 export function isEnrollment(operation: AuthOperation): boolean {
   return Object.hasOwn(ENROLLMENT_PATHS, operation);
 }
 
 export function needsCsrf(operation: AuthOperation): boolean {
-  return operation === "verify" || operation === "logout" ||
-    (isEnrollment(operation) && operation !== "enrollmentExchange");
+  return (
+    operation === "verify" ||
+    operation === "logout" ||
+    (isEnrollment(operation) && operation !== "enrollmentExchange")
+  );
 }
 
-export function validEnrollmentBody(operation: AuthOperation, body: unknown): boolean {
+export function validEnrollmentBody(
+  operation: AuthOperation,
+  body: unknown,
+): boolean {
   if (!isEnrollment(operation) || !isRecord(body)) return false;
   const keys = Object.keys(body);
   if (operation === "enrollmentExchange")
-    return keys.length === 1 && typeof body.token === "string" && /^[A-Za-z0-9_-]{43}$/u.test(body.token);
+    return (
+      keys.length === 1 &&
+      typeof body.token === "string" &&
+      /^[A-Za-z0-9_-]{43}$/u.test(body.token)
+    );
   if (operation === "enrollmentPassword")
-    return keys.length === 1 && typeof body.password === "string" &&
-      body.password.length <= 4096 && Array.from(body.password.normalize("NFC")).length >= 15 &&
+    return (
+      keys.length === 1 &&
+      typeof body.password === "string" &&
+      body.password.length <= 4096 &&
+      Array.from(body.password.normalize("NFC")).length >= 8 &&
       Array.from(body.password.normalize("NFC")).length <= 1024 &&
-      new TextEncoder().encode(body.password.normalize("NFC")).length <= 4096 && !/[\p{Cc}\p{Cs}]/u.test(body.password);
+      new TextEncoder().encode(body.password.normalize("NFC")).length <= 4096 &&
+      !/[\p{Cc}\p{Cs}]/u.test(body.password)
+    );
   if (operation === "enrollmentComplete")
-    return keys.length === 2 && typeof body.code === "string" && /^\d{6}$/u.test(body.code) &&
-      typeof body.version === "number" && Number.isSafeInteger(body.version) && body.version >= 1 && body.version <= 2147483647;
+    return (
+      keys.length === 2 &&
+      typeof body.code === "string" &&
+      /^\d{6}$/u.test(body.code) &&
+      typeof body.version === "number" &&
+      Number.isSafeInteger(body.version) &&
+      body.version >= 1 &&
+      body.version <= 2147483647
+    );
   return keys.length === 0;
 }
 
-export function parseEnrollmentState(value: unknown): { stage: "password" | "mfa"; expiresAt: string } | null {
-  if (!isRecord(value) || (value.stage !== "password" && value.stage !== "mfa") || !validExpiry(value.expiresAt)) return null;
+export function parseEnrollmentState(
+  value: unknown,
+): { stage: "password" | "mfa"; expiresAt: string } | null {
+  if (
+    !isRecord(value) ||
+    (value.stage !== "password" && value.stage !== "mfa") ||
+    !validExpiry(value.expiresAt)
+  )
+    return null;
   return { stage: value.stage, expiresAt: value.expiresAt };
 }
 
-export function parseEnrollmentSetup(value: unknown): { secret: string; version: number } | null {
-  if (!isRecord(value) || typeof value.secret !== "string" || !/^[A-Z2-7]{32}$/u.test(value.secret) ||
-    typeof value.version !== "number" || !Number.isSafeInteger(value.version) || value.version < 1) return null;
+export function parseEnrollmentSetup(
+  value: unknown,
+): { secret: string; version: number } | null {
+  if (
+    !isRecord(value) ||
+    typeof value.secret !== "string" ||
+    !/^[A-Z2-7]{32}$/u.test(value.secret) ||
+    typeof value.version !== "number" ||
+    !Number.isSafeInteger(value.version) ||
+    value.version < 1
+  )
+    return null;
   return { secret: value.secret, version: value.version };
 }
 
-export function parseEnrollmentComplete(value: unknown): { recoveryCodes: string[] } | null {
-  if (!isRecord(value) || !Array.isArray(value.recoveryCodes) || value.recoveryCodes.length !== 10 ||
-    !value.recoveryCodes.every((code): code is string => typeof code === "string" && /^(?:[A-F0-9]{4}-){7}[A-F0-9]{4}$/u.test(code)) ||
-    new Set(value.recoveryCodes).size !== 10) return null;
+export function parseEnrollmentComplete(
+  value: unknown,
+): { recoveryCodes: string[] } | null {
+  if (
+    !isRecord(value) ||
+    !Array.isArray(value.recoveryCodes) ||
+    value.recoveryCodes.length !== 10 ||
+    !value.recoveryCodes.every(
+      (code): code is string =>
+        typeof code === "string" &&
+        /^(?:[A-F0-9]{4}-){7}[A-F0-9]{4}$/u.test(code),
+    ) ||
+    new Set(value.recoveryCodes).size !== 10
+  )
+    return null;
   return { recoveryCodes: [...value.recoveryCodes] };
 }
 
@@ -313,9 +363,11 @@ export function safeProblem(
   if (status === 429)
     message = "Too many attempts. Please wait before trying again.";
   if (isEnrollment(operation) && status === 401)
-    message = "The code or enrollment request is invalid or has expired. Use a current code, or ask your operator for a new enrollment email.";
+    message =
+      "The code or enrollment request is invalid or has expired. Use a current code, or ask your operator for a new enrollment email.";
   if (code === "PASSWORD_POLICY_VIOLATION")
-    message = "Use at least 15 characters and avoid common or compromised passwords.";
+    message =
+      "Use at least 8 characters and avoid common or compromised passwords.";
   return { status, code, message, ...(requestId ? { requestId } : {}) };
 }
 

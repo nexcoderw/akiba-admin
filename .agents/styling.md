@@ -27,4 +27,3 @@ Respect reduced motion. Prefer inexpensive animations using opacity/transform wh
 Keep selectors locally scoped and specificity manageable. Avoid !important as a routine fix, broad element overrides and inline styles for reusable variants. Dynamic values may use deliberate CSS variables.
 
 Review long content, narrow layouts, high zoom and loading dimensions. CSS must never act as an authorization boundary; unauthorized content must not be rendered.
-

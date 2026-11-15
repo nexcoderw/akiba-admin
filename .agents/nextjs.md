@@ -17,4 +17,3 @@ Layouts, proxy logic and hidden links are not sufficient authorization. Every pr
 ## Navigation and compiler
 
 Consult adopting-partial-prefetching.md before changing Link prefetch behavior. Enabled partial prefetching changes what true/auto fetch; do not assume a complete dynamic page is prefetched. Bound speculative requests on large navigation lists. React Compiler is enabled: add manual memoization only for a demonstrated need.
-

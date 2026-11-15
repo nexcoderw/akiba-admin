@@ -17,4 +17,3 @@ Authenticated requests and responses must not enter shared caches. Browser calls
 Map verified problem responses to safe UI errors with request IDs. Do not return raw upstream bodies, SQL, stacks or internal hosts. Handle network failure separately from rejection.
 
 Automatically retry only explicitly safe, bounded reads. For a timed-out mutation, outcome may be unknown: check status or use supported idempotency before resubmission. Never blindly retry invitations, approval, MFA changes or other privilege mutations. Preserve conflict responses and user drafts rather than overwriting newer server state.
-

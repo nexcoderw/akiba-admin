@@ -12,6 +12,12 @@
     var(--ui-subtle);
 }
 
+.screen[data-variant="inline"] {
+  min-block-size: 0;
+  padding: 0;
+  background: transparent;
+}
+
 .card {
   display: grid;
   justify-items: center;
@@ -24,6 +30,34 @@
   box-shadow: var(--ui-shadow);
   text-align: center;
   animation: loading-enter 320ms var(--motion-ease) both;
+}
+
+.screen[data-variant="inline"] .card {
+  gap: var(--space-5);
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.screen[data-variant="inline"] .brand {
+  display: none;
+}
+
+.screen[data-variant="inline"] .loader {
+  inline-size: 4.25rem;
+  block-size: 4.25rem;
+}
+
+.screen[data-variant="inline"] .lock {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+}
+
+.screen[data-variant="inline"] .copy {
+  gap: var(--space-3);
 }
 
 .brand {

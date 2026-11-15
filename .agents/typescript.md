@@ -17,4 +17,3 @@ Handle dates, decimals, large integers, nullability and enums intentionally. Do 
 Avoid unnecessary generic frameworks and type tricks that obscure behavior. Prefer readable discriminated unions and small domain types.
 
 Keep @/* imports aligned with the actual src alias. Follow current module conventions and avoid circular imports. A successful type check does not establish runtime validation or authorization.
-

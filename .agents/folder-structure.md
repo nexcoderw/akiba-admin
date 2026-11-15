@@ -4,6 +4,12 @@
 
 The application uses src/app for App Router routes, layouts and route files; public contains static assets. Preserve those conventions. Do not reorganize the starter solely to create empty architecture folders.
 
+Authentication UI pages live under src/app/(auth), with the shared authentication route layout in (auth)/layout.tsx. The login route is (auth)/login/page.tsx and still resolves to /login. MFA currently remains a step inside that page; do not create placeholder routes.
+
+All authorized platform pages live under src/app/(platform) and inherit its verified-session layout. Keep permission checks near protected data access and mutations; a group name or layout alone does not authorize an operation. API adapters remain under src/app/api/auth because they are endpoint handlers rather than UI pages.
+
+Reusable authentication presentation components remain in src/components/auth so both route groups can render safe status and loading views without duplicating their styles.
+
 ## Growth rules
 
 Colocate route-specific components and CSS near the route when that improves clarity. Extract genuinely reusable UI primitives into a shared component area once needed. Group substantial feature logic by feature, with explicit server/client boundaries.

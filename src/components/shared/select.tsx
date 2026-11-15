@@ -60,7 +60,13 @@ export function Select(props: SelectProps) {
   } = props;
   return (
     <Field id={id} label={label} hint={hint} error={error} required={required}>
-      <div className={styles.control}>
+      <div
+        className={styles.control}
+        data-invalid={Boolean(error) || undefined}
+        data-disabled={disabled || undefined}
+      >
+        {/* Animated gradient ring, revealed on focus (decorative only). */}
+        <span className={styles.glow} aria-hidden="true" />
         <span className={styles.leadingIcon} aria-hidden="true">
           {icon ?? <Icon name="list" />}
         </span>
@@ -243,7 +249,14 @@ function MultipleSelect({
             </option>
           ))}
         </select>
-        <div className={styles.control}>
+        <div
+          className={styles.control}
+          data-open={(open && !disabled) || undefined}
+          data-invalid={Boolean(fieldError) || undefined}
+          data-disabled={disabled || undefined}
+        >
+          {/* Animated gradient ring, revealed on focus or while open (decorative only). */}
+          <span className={styles.glow} aria-hidden="true" />
           <span className={styles.leadingIcon} aria-hidden="true">
             {icon ?? <Icon name="list" />}
           </span>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth/session.server";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { Icon } from "@/components/shared/icon";
+import { LoadingState } from "@/components/shared/loading-state";
 import styles from "./page.module.css";
 
 async function AccountLanding() {
@@ -42,7 +43,14 @@ async function AccountLanding() {
 
 export default function Home() {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <LoadingState
+          title="Loading your workspace"
+          message="Your session is confirmed. We’re preparing your account overview."
+        />
+      }
+    >
       <AccountLanding />
     </Suspense>
   );

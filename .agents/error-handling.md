@@ -17,4 +17,3 @@ Use concise actionable language: what happened and what the user can do. Place f
 Provide retry for safe reads, restart for expired proofs, and reauthentication for confirmed session expiration. Do not turn every 403 into a login loop. Rate limits must respect backend retry guidance. Mutation timeout copy must not claim failure or success before the outcome is known.
 
 Error boundaries need useful fallbacks and recovery without private diagnostics. Review loading/error/not-found files against the actual Next.js APIs. Keep normal navigation available when a local region fails.
-

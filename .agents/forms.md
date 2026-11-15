@@ -19,4 +19,3 @@ Keep credentials and proofs out of URLs, persistence and analytics. Clear transi
 Handle 409/conflict and stale versions without silently overwriting changes. If a mutation times out, its outcome may be unknown; do not blindly resubmit. Security-sensitive operations require the backend's actual CSRF and step-up flow, not a visual confirmation alone.
 
 Test keyboard submission, slow requests, repeated clicks, expiration, rejection and recovery.
-

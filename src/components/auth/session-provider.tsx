@@ -17,6 +17,7 @@ import {
   type PlatformSession,
   type SessionResult,
 } from "@/lib/auth/contracts";
+import { LoadingState } from "@/components/shared/loading-state";
 import { AuthNotice } from "./auth-notice";
 import styles from "./session-provider.module.css";
 
@@ -182,7 +183,20 @@ export function SessionProvider({
       </main>
     );
   }
-  return null;
+  return (
+    <LoadingState
+      title={
+        result.kind === "unauthenticated"
+          ? "Returning to sign in"
+          : "Checking your session"
+      }
+      message={
+        result.kind === "unauthenticated"
+          ? "Your session is no longer active. We’re taking you back to sign in."
+          : "We’re confirming your platform access before showing your workspace."
+      }
+    />
+  );
 }
 
 export function usePlatformSession() {

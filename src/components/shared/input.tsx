@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode, Ref } from "react";
 import { descriptionIds, Field, type FieldProps } from "./field";
 import { Icon } from "./icon";
-import styles from "./controls.module.css";
+import styles from "./input.module.css";
 
 export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "size" | "type"> &
   FieldProps & {

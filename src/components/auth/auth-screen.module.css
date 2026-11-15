@@ -49,6 +49,24 @@
   min-inline-size: 0;
 }
 
+/* A full-screen shared status replaces the auth chrome while it is active. */
+.shell:has(> .card [role="status"][aria-busy="true"]) {
+  gap: 0;
+}
+
+.shell:has(> .card [role="status"][aria-busy="true"]) > .brand {
+  display: none;
+}
+
+.card:has([role="status"][aria-busy="true"]) {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
 /* ---------- Brand ---------- */
 .brand {
   display: inline-flex;

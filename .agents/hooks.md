@@ -17,4 +17,3 @@ Custom hooks should have a coherent responsibility and typed contract. Do not hi
 React Compiler is enabled. Do not add useMemo/useCallback everywhere by habit; measure expensive work and follow the installed compiler guidance. Memoization must not be relied on for correctness or authorization.
 
 Do not use mount-only guards to conceal hydration bugs. Read browser APIs only in supported contexts and keep initial markup consistent.
-

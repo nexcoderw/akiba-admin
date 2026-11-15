@@ -1,8 +1,12 @@
 "use client";
 
 import {
-  createContext, useContext, useRef, useState,
-  type FormEvent, type FormHTMLAttributes,
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  type FormEvent,
+  type FormHTMLAttributes,
 } from "react";
 import styles from "./form.module.css";
 
@@ -37,7 +41,10 @@ export function Form({
     event.preventDefault();
     if (submitting.current) return;
     const form = event.currentTarget;
-    const submitter = event.nativeEvent instanceof SubmitEvent ? event.nativeEvent.submitter : null;
+    const submitter =
+      event.nativeEvent instanceof SubmitEvent
+        ? event.nativeEvent.submitter
+        : null;
     submitting.current = true;
     setFailed(false);
     try {
@@ -55,9 +62,18 @@ export function Form({
 
   return (
     <SubmissionContext value={pending}>
-      <form {...props} method="post" onSubmit={handleSubmit} aria-busy={pending || props["aria-busy"]}>
+      <form
+        {...props}
+        method="post"
+        onSubmit={handleSubmit}
+        aria-busy={pending || props["aria-busy"]}
+      >
         {children}
-        {failed && <p className={styles.error} role="alert">{errorMessage}</p>}
+        {failed && (
+          <p className={styles.error} role="alert">
+            {errorMessage}
+          </p>
+        )}
       </form>
     </SubmissionContext>
   );

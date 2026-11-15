@@ -12,6 +12,10 @@ Reuse a shared component by rendering it; its implementation owns its styles. If
 
 ## Visual system
 
+Akiba is light-mode only. Use Outfit through the root next/font configuration and #3E0F8D as the primary brand color. Do not add a dark-mode toggle, automatic prefers-color-scheme overrides or browser-persisted theme state. Preserve forced-colors accessibility support.
+
+globals.css owns the light palette, font families, h1–h6 sizes, spacing, shape, shadow, layer and motion tokens, semantic element defaults and shared accessibility utilities. Consume these variables in component modules instead of recreating a separate palette or heading scale. Keep component layouts, variants and states in their own modules.
+
 Define reusable semantic tokens for colors, spacing, typography, borders, radii and elevation when the product requires them. Keep component variants consistent. Avoid scattered magic values and large global selector overrides.
 
 Preserve the existing next/font setup unless a reviewed design change requires otherwise. Avoid duplicate font requests or unnecessary weights.

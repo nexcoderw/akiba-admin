@@ -17,4 +17,3 @@ Read-only file and Git inspection, source edits and static diff review are allow
 Review the complete relevant diff, imports, failure paths, contracts, secret handling and unrelated changes. Explain what changed, what static review established, what was not executed and what remains unverified. Provide human commands that actually exist, with the correct directory and prerequisites.
 
 Finish with per-file commit commands under [git.md](git.md). Do not create completion-report files, command scripts or speculative scaffolding merely to make a task look finished.
-

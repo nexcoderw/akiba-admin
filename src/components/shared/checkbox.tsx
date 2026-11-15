@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes, Ref } from "react";
 import { descriptionIds, type FieldProps } from "./field";
-import styles from "./controls.module.css";
+import styles from "./checkbox.module.css";
 
 export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "type" | "children"> &
   FieldProps & { ref?: Ref<HTMLInputElement> };

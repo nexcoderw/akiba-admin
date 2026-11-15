@@ -4,7 +4,11 @@
   min-block-size: 100dvh;
   padding: clamp(1rem, 4vw, 3rem);
   background:
-    radial-gradient(ellipse at 50% 42%, rgb(239 231 252 / 76%), transparent 57%),
+    radial-gradient(
+      ellipse at 50% 42%,
+      rgb(239 231 252 / 76%),
+      transparent 57%
+    ),
     var(--ui-subtle);
 }
 

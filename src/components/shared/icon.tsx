@@ -8,6 +8,7 @@ import {
   Cancel01Icon,
   InformationCircleIcon,
   LockPasswordIcon,
+  Login03Icon,
   Mail01Icon,
   Menu01Icon,
   TextAlignLeftIcon,
@@ -34,6 +35,7 @@ export type IconName =
   | "error"
   | "info"
   | "list"
+  | "login"
   | "lock"
   | "text"
   | "user"
@@ -50,6 +52,7 @@ const icons: Record<IconName, IconSvgElement> = {
   error: AlertCircleIcon,
   info: InformationCircleIcon,
   list: Menu01Icon,
+  login: Login03Icon,
   lock: LockPasswordIcon,
   text: TextAlignLeftIcon,
   user: UserIcon,

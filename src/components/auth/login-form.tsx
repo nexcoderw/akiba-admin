@@ -6,6 +6,7 @@ import { Form } from "@/components/shared/form";
 import { Icon } from "@/components/shared/icon";
 import { Input } from "@/components/shared/input";
 import { OtpInput } from "@/components/shared/otp-input";
+import { useToast } from "@/components/shared/toast";
 import {
   AuthRequestError,
   readSession,
@@ -17,7 +18,6 @@ import {
   safeDestination,
   validVerificationBody,
   type Challenge,
-  type SafeProblem,
 } from "@/lib/auth/contracts";
 import { LogoutButton } from "./logout-button";
 import styles from "./login-form.module.css";
@@ -48,13 +48,27 @@ export function LoginForm({
     password?: string;
     code?: string;
   }>({});
-  const [problem, setProblem] = useState<SafeProblem>();
+  const toast = useToast();
+  const errorToastId = useRef<number | undefined>(undefined);
+  const expirationNoticeShown = useRef(false);
   const [challengeExpired, setChallengeExpired] = useState(false);
   const [otp, setOtp] = useState("");
   const email = useRef<HTMLInputElement>(null);
   const password = useRef<HTMLInputElement>(null);
   const code = useRef<HTMLInputElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (
+      !expiredSession ||
+      step.kind !== "password" ||
+      expirationNoticeShown.current
+    ) {
+      return;
+    }
+    expirationNoticeShown.current = true;
+    toast.info("Your session ended. Sign in again to continue.");
+  }, [expiredSession, step.kind, toast]);
 
   useEffect(() => {
     if (step.kind !== "password") heading.current?.focus();
@@ -71,35 +85,38 @@ export function LoginForm({
     };
   }, [step]);
 
-  function showError(error: unknown) {
-    setProblem(
+  function clearErrorToast() {
+    if (errorToastId.current === undefined) return;
+    toast.dismiss(errorToastId.current);
+    errorToastId.current = undefined;
+  }
+
+  function showError(message: string) {
+    clearErrorToast();
+    errorToastId.current = toast.error(message);
+  }
+
+  function showRequestError(error: unknown) {
+    showError(
       error instanceof AuthRequestError
-        ? error.problem
-        : {
-            status: 503,
-            code: "SERVICE_UNAVAILABLE",
-            message:
-              "The service is temporarily unavailable. Please try again.",
-          },
+        ? error.problem.message
+        : "The service is temporarily unavailable. Please try again.",
     );
   }
 
   async function confirmSession() {
-    setProblem(undefined);
+    clearErrorToast();
     setVerificationState("checking");
     const result = await readSession();
     if (result.kind === "authenticated") {
       window.location.replace(safeDestination(next));
       return;
     } else if (result.kind === "denied" || result.kind === "unavailable") {
-      setProblem(result.problem);
+      showError(result.problem.message);
     } else {
-      setProblem({
-        status: 401,
-        code: "AUTH_SESSION_EXPIRED",
-        message:
-          "Your session couldn't be confirmed. Start again or retry the session check.",
-      });
+      showError(
+        "Your session couldn't be confirmed. Start again or retry the session check.",
+      );
     }
     setVerificationState("retry");
   }
@@ -117,9 +134,9 @@ export function LoginForm({
   function restart() {
     if (busy) return;
     if (code.current) code.current.value = "";
+    clearErrorToast();
     setOtp("");
     setFields({});
-    setProblem(undefined);
     setVisible(false);
     setChallengeExpired(false);
     setMethod("totp");
@@ -154,31 +171,12 @@ export function LoginForm({
                     : "Enter one of your unused recovery codes."}
         </p>
       </header>
-      {expiredSession && step.kind === "password" && (
-        <p className={styles.information} role="status">
-          Your session ended. Sign in again to continue.
-        </p>
-      )}
-      {Object.values(fields).some(Boolean) && (
-        <p className={styles.validationSummary} role="alert">
-          Please check the highlighted fields.
-        </p>
-      )}
-      {problem && (
-        <div className={styles.problem} role="alert">
-          <Icon name="error" />
-          <div>
-            <p>{problem.message}</p>
-            {problem.requestId && <small>Reference: {problem.requestId}</small>}
-          </div>
-        </div>
-      )}
       {step.kind === "password" && (
         <Form
           className={styles.form}
           noValidate
           onSubmitAction={async (data) => {
-            setProblem(undefined);
+            clearErrorToast();
             const emailValue =
               typeof data.get("email") === "string"
                 ? String(data.get("email"))
@@ -190,6 +188,7 @@ export function LoginForm({
             const errors = loginErrors(emailValue, passwordValue);
             setFields(errors);
             if (errors.email || errors.password) {
+              toast.warning("Please check the highlighted fields.");
               (errors.email ? email.current : password.current)?.focus();
               return;
             }
@@ -208,7 +207,7 @@ export function LoginForm({
               setVerificationState("input");
               setStep({ kind: "otp", challenge });
             } catch (error: unknown) {
-              showError(error);
+              showRequestError(error);
             } finally {
               setBusy(false);
             }
@@ -309,7 +308,7 @@ export function LoginForm({
               className={styles.form}
               noValidate
               onSubmitAction={async (data) => {
-                setProblem(undefined);
+                clearErrorToast();
                 const raw = data.get("code");
                 const value = typeof raw === "string" ? raw.trim() : "";
                 const body =
@@ -344,13 +343,11 @@ export function LoginForm({
                   ) {
                     if (code.current) code.current.value = "";
                     setVerificationState("retry");
-                    setProblem({
-                      ...error.problem,
-                      message:
-                        "We couldn't confirm verification. Check your session before submitting another code.",
-                    });
+                    showError(
+                      "We couldn't confirm verification. Check your session before submitting another code.",
+                    );
                   } else {
-                    showError(error);
+                    showRequestError(error);
                     if (method === "totp") {
                       // Clear the rejected code and return focus so retyping is immediate.
                       setOtp("");
@@ -416,7 +413,7 @@ export function LoginForm({
                       setOtp("");
                       setMethod(method === "totp" ? "recovery_code" : "totp");
                       setFields({});
-                      setProblem(undefined);
+                      clearErrorToast();
                     }}
                   >
                     {method === "totp"

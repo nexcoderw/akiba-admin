@@ -10,6 +10,8 @@ Prefer composition, explicit variants and clear responsibilities. A visual primi
 
 Use native elements and preserve accessible names, keyboard behavior, focus, disabled and pending states. A custom control needs equivalent semantics and interaction, not only matching appearance.
 
+The shared `Button` MUST show only its animated loading indicator while pending; do not display loading text inside the button. Keep `loadingLabel` as the button's accessible name during loading so assistive technology still announces the current action. Apply this consistently to every page and action using the shared button.
+
 ## Rendering cost
 
 Avoid broad use client boundaries, deeply nested global providers and copying large data arrays into local state. Lazy-load genuinely optional heavy interactions; do not defer critical content without reason.

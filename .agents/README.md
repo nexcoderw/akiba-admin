@@ -21,41 +21,41 @@ A fast page that leaks data is unacceptable. Security controls must have underst
 
 At rule creation, the manifest declares Next.js 16.4.6, React/React DOM 19.3.0 and TypeScript ^5. The app uses App Router under src/app, strict TypeScript, CSS Modules, global CSS and next/font. Cache Components, partial prefetching and React Compiler are enabled. Recheck the actual manifest, lockfile, configuration and installed documentation before changes.
 
-Only dev, build, start and lint scripts currently exist. There is no configured test runner, formatter, UI kit, query library or authentication adapter. These rules describe requirements for future implementation; they do not claim those features already exist.
+Scripts include dev, build, start, format, format:check, lint and the native Node authentication-policy test suite. Prettier is the required formatter, declared as an exact development dependency for human installation. Fixed platform authentication adapters and session guards are implemented; no third-party test runner, UI kit or query library is configured. Read the application README for implemented flows and remaining verification.
 
 ## Rule map
 
-| File | Responsibility |
-| --- | --- |
-| [agent-workflow.md](agent-workflow.md) | Inspection, ownership, execution boundaries and handoff |
-| [git.md](git.md) | Preserve changes and provide per-file commit commands |
-| [nextjs.md](nextjs.md) | Installed framework documentation, rendering and caching |
-| [performance.md](performance.md) | Client work, fetching, payloads and measurement |
-| [security.md](security.md) | Trust boundaries, CSRF, secrets and browser protections |
-| [authentication.md](authentication.md) | Sessions, MFA, recovery and logout |
-| [authorization.md](authorization.md) | Platform permissions and tenant separation |
-| [endpoints.md](endpoints.md) | Fixed API adapters and safe transport |
-| [environment.md](environment.md) | Configuration, origins and public variables |
-| [error-handling.md](error-handling.md) | Safe API errors and recoverable UI |
-| [design.md](design.md) | Product hierarchy, clarity and user feedback |
-| [accessibility.md](accessibility.md) | Keyboard, semantics, focus and assistive technology |
-| [responsive.md](responsive.md) | Small screens, zoom and input modes |
-| [navigation.md](navigation.md) | Routes, redirects, permissions and prefetching |
-| [forms.md](forms.md) | Validation, submission and sensitive inputs |
-| [components.md](components.md) | Server/client boundaries and reusable primitives |
-| [state-management.md](state-management.md) | Server authority, URL state and isolation |
-| [hooks.md](hooks.md) | Effects, lifecycle and asynchronous races |
-| [styling.md](styling.md) | CSS Modules, tokens and visual states |
-| [icons.md](icons.md) | Accessible, consistent and lightweight icons |
-| [typescript.md](typescript.md) | Strict types, runtime validation and DTOs |
-| [code-quality.md](code-quality.md) | Maintainable implementation and review |
-| [folder-structure.md](folder-structure.md) | Feature boundaries and module placement |
-| [file-naming.md](file-naming.md) | Predictable routes, modules and exports |
-| [dependencies.md](dependencies.md) | Dependency justification and compatibility |
-| [prettier.md](prettier.md) | Actual formatting conventions; no assumed tooling |
-| [testing.md](testing.md) | Meaningful verification and honest evidence |
-| [comments.md](comments.md) | Explain security intent and unusual constraints |
-| [documentation.md](documentation.md) | Accurate, concise and nonredundant documentation |
+| File                                       | Responsibility                                           |
+| ------------------------------------------ | -------------------------------------------------------- |
+| [agent-workflow.md](agent-workflow.md)     | Inspection, ownership, execution boundaries and handoff  |
+| [git.md](git.md)                           | Preserve changes and provide per-file commit commands    |
+| [nextjs.md](nextjs.md)                     | Installed framework documentation, rendering and caching |
+| [performance.md](performance.md)           | Client work, fetching, payloads and measurement          |
+| [security.md](security.md)                 | Trust boundaries, CSRF, secrets and browser protections  |
+| [authentication.md](authentication.md)     | Sessions, MFA, recovery and logout                       |
+| [authorization.md](authorization.md)       | Platform permissions and tenant separation               |
+| [endpoints.md](endpoints.md)               | Fixed API adapters and safe transport                    |
+| [environment.md](environment.md)           | Configuration, origins and public variables              |
+| [error-handling.md](error-handling.md)     | Safe API errors and recoverable UI                       |
+| [design.md](design.md)                     | Product hierarchy, clarity and user feedback             |
+| [accessibility.md](accessibility.md)       | Keyboard, semantics, focus and assistive technology      |
+| [responsive.md](responsive.md)             | Small screens, zoom and input modes                      |
+| [navigation.md](navigation.md)             | Routes, redirects, permissions and prefetching           |
+| [forms.md](forms.md)                       | Validation, submission and sensitive inputs              |
+| [components.md](components.md)             | Server/client boundaries and reusable primitives         |
+| [state-management.md](state-management.md) | Server authority, URL state and isolation                |
+| [hooks.md](hooks.md)                       | Effects, lifecycle and asynchronous races                |
+| [styling.md](styling.md)                   | CSS Modules, tokens and visual states                    |
+| [icons.md](icons.md)                       | Accessible, consistent and lightweight icons             |
+| [typescript.md](typescript.md)             | Strict types, runtime validation and DTOs                |
+| [code-quality.md](code-quality.md)         | Maintainable implementation and review                   |
+| [folder-structure.md](folder-structure.md) | Feature boundaries and module placement                  |
+| [file-naming.md](file-naming.md)           | Predictable routes, modules and exports                  |
+| [dependencies.md](dependencies.md)         | Dependency justification and compatibility               |
+| [prettier.md](prettier.md)                 | Required Prettier configuration and formatting workflow  |
+| [testing.md](testing.md)                   | Meaningful verification and honest evidence              |
+| [comments.md](comments.md)                 | Explain security intent and unusual constraints          |
+| [documentation.md](documentation.md)       | Accurate, concise and nonredundant documentation         |
 
 ## Task routing
 
@@ -65,4 +65,3 @@ Only dev, build, start and lint scripts currently exist. There is no configured 
 - Dependencies or configuration: dependencies, environment, security and formatting.
 
 Read additional topics whenever the implementation touches them. A checklist or source review is not proof of runtime correctness, database isolation, performance or production readiness.
-

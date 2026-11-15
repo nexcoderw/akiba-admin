@@ -10,6 +10,8 @@ A pending password, enrollment, challenge or restricted recovery proof is not a 
 
 Never persist passwords, TOTP secrets, recovery codes, challenge tokens or session identifiers in localStorage, sessionStorage, URL parameters or analytics. Keep necessary transient secrets narrowly scoped and clear them on completion, cancellation or expiration. Do not echo secrets into errors.
 
+All application use of localStorage and sessionStorage is prohibited, including for profiles, permissions, drafts, preferences and nonsecret state. ESLint rejects direct global access and named property access/destructuring. Do not evade this policy with aliases, computed property names or persistence plugins. Session credentials stay in backend-managed HttpOnly cookies; the approved readable CSRF cookie is used only for the existing double-submit contract.
+
 Support password managers, autocomplete and paste. Use backend-defined expiration, purpose and attempt limits. A UI countdown or disabled button is not enforcement. Do not retry authentication or replay security mutations automatically.
 
 ## Session changes

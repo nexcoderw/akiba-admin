@@ -23,7 +23,6 @@ export type ButtonProps = Omit<
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   pending?: boolean;
-  loadingIconOnly?: boolean;
   loadingLabel?: string;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
   onActionError?: (error: unknown) => void;
@@ -35,7 +34,6 @@ export function Button({
   size = "md",
   fullWidth = false,
   pending = false,
-  loadingIconOnly = false,
   loadingLabel = "Working…",
   type = "button",
   disabled,
@@ -90,15 +88,12 @@ export function Button({
         type={type}
         disabled={disabled || busy}
         aria-busy={busy}
-        aria-label={
-          busy && loadingIconOnly ? loadingLabel : props["aria-label"]
-        }
+        aria-label={busy ? loadingLabel : props["aria-label"]}
         className={`${styles.button} ${className}`}
         data-variant={variant}
         data-size={size}
         data-full-width={fullWidth || undefined}
         data-pending={busy || undefined}
-        data-loading-icon-only={loadingIconOnly || undefined}
         data-failed={failed || undefined}
         onClick={handleClick}
       >
@@ -110,16 +105,12 @@ export function Button({
           </span>
           <span className={styles.label}>{children}</span>
         </span>
-        <span
-          className={styles.loading}
-          aria-hidden={!busy || loadingIconOnly}
-        >
+        <span className={styles.loading} aria-hidden="true">
           <span className={styles.orbit} aria-hidden="true">
             <span />
             <span />
             <span />
           </span>
-          {!loadingIconOnly && <span>{loadingLabel}</span>}
         </span>
       </button>
       {failed && (

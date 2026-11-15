@@ -42,7 +42,7 @@ export default function LoginPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   return (
-    <Suspense fallback={<AuthNotice checking />}>
+    <Suspense fallback={null}>
       <Login searchParams={searchParams} />
     </Suspense>
   );

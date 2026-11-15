@@ -1,0 +1,22 @@
+.field {
+  display: grid;
+  gap: 0.5rem;
+  min-inline-size: 0;
+}
+
+.label {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  color: var(--ui-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.required { color: var(--ui-muted); font-size: 0.75rem; font-weight: 400; }
+
+.hint, .error { font-size: 0.8125rem; line-height: 1.6; overflow-wrap: anywhere; }
+
+.hint { color: var(--ui-muted); }
+
+.error { color: var(--ui-danger); }

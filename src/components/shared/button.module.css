@@ -245,18 +245,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.625rem;
-  min-inline-size: 0;
-  overflow-wrap: anywhere;
-  font-size: 0.8125rem;
 }
 
 .button[data-pending] .loading {
   visibility: visible;
-}
-
-.button[data-loading-icon-only] .loading {
-  gap: 0;
 }
 
 /* Three orbiting beads use transform/opacity only and occupy the icon's footprint. */

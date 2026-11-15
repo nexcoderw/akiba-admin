@@ -29,17 +29,14 @@ const copy: Record<LoadingStatePhase, { title: string; message: string }> = {
 
 export function LoadingState({
   phase = "session-check",
-  variant = "page",
 }: {
   phase?: LoadingStatePhase;
-  variant?: "page" | "inline";
 }) {
   const { title, message } = copy[phase];
 
   return (
     <section
       className={styles.screen}
-      data-variant={variant}
       role="status"
       aria-live="polite"
       aria-busy="true"

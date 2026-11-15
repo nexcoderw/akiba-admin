@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth/session.server";
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { AuthNotice } from "@/components/auth/auth-notice";
 import { SessionProvider } from "@/components/auth/session-provider";
+import { LoadingState } from "@/components/shared/loading-state";
 
 async function PlatformAccess({ children }: { children: ReactNode }) {
   const result = await getSession();
@@ -28,7 +29,14 @@ async function PlatformAccess({ children }: { children: ReactNode }) {
 
 export default function PlatformLayout({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <LoadingState
+          title="Checking your session"
+          message="We’re securely confirming your platform access before showing your workspace."
+        />
+      }
+    >
       <PlatformAccess>{children}</PlatformAccess>
     </Suspense>
   );

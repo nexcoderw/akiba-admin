@@ -1,7 +1,11 @@
 .screen {
+  position: fixed;
+  z-index: calc(var(--layer-toast) + 1);
+  inset: 0;
   display: grid;
   place-items: center;
   min-block-size: 100dvh;
+  overflow-y: auto;
   padding: clamp(1rem, 4vw, 3rem);
   background:
     radial-gradient(
@@ -10,12 +14,6 @@
       transparent 57%
     ),
     var(--ui-subtle);
-}
-
-.screen[data-variant="inline"] {
-  min-block-size: 0;
-  padding: 0;
-  background: transparent;
 }
 
 .card {
@@ -30,34 +28,6 @@
   box-shadow: var(--ui-shadow);
   text-align: center;
   animation: loading-enter 320ms var(--motion-ease) both;
-}
-
-.screen[data-variant="inline"] .card {
-  gap: var(--space-5);
-  inline-size: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  animation: none;
-}
-
-.screen[data-variant="inline"] .brand {
-  display: none;
-}
-
-.screen[data-variant="inline"] .loader {
-  inline-size: 4.25rem;
-  block-size: 4.25rem;
-}
-
-.screen[data-variant="inline"] .lock {
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
-}
-
-.screen[data-variant="inline"] .copy {
-  gap: var(--space-3);
 }
 
 .brand {
@@ -229,6 +199,12 @@
   .progress > span,
   .pulse {
     background: Highlight;
+  }
+}
+
+@media (max-block-size: 36rem) {
+  .screen {
+    place-items: start center;
   }
 }
 

@@ -3,6 +3,7 @@ import {
   parseVerification,
   safeProblem,
   sessionResult,
+  needsCsrf,
   type AuthOperation,
   type SafeProblem,
 } from "./contracts";
@@ -33,6 +34,12 @@ const paths: Record<AuthOperation, string> = {
   verify: "/api/auth/verify",
   session: "/api/auth/session",
   logout: "/api/auth/logout",
+  enrollmentExchange: "/api/auth/enrollment/exchange",
+  enrollmentStatus: "/api/auth/enrollment/status",
+  enrollmentPassword: "/api/auth/enrollment/password",
+  enrollmentSetup: "/api/auth/enrollment/setup",
+  enrollmentComplete: "/api/auth/enrollment/complete",
+  enrollmentCancel: "/api/auth/enrollment/cancel",
 };
 
 export async function authRequest(
@@ -44,11 +51,11 @@ export async function authRequest(
     Accept: "application/json, application/problem+json",
   });
   if (body !== undefined) headers.set("Content-Type", "application/json");
-  if (operation === "verify" || operation === "logout") {
+  if (needsCsrf(operation)) {
     const csrf = csrfToken();
     if (!csrf) {
       throw new AuthRequestError(
-        operation === "verify"
+        operation !== "logout"
           ? safeProblem(401, { code: "AUTH_MFA_INVALID" }, operation)
           : {
               status: 403,

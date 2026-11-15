@@ -17,4 +17,3 @@ Render only fields the current principal may see. Hiding a field with CSS does n
 Handle permission revocation and organization suspension on the next server operation. Stale browser claims must not authorize an action. On 401/403, follow the verified error contract and update UI safely; do not bypass checks or endlessly refresh.
 
 Tests must include ordinary tenant users calling platform actions, forged organization IDs, cross-organization resources, stale grants and identity-switch cache leakage.
-

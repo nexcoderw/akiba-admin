@@ -6,13 +6,78 @@ Platform administration frontend using Next.js App Router, React, strict TypeScr
 
 Run commands from app/admin. Install dependencies with npm ci when needed; do not mix package managers.
 
+For the initial Prettier setup, run the following yourself to install the pinned formatter and update package-lock.json. The agent has not run an install or changed the lockfile dependency graph:
+
 ```sh
-npm run dev
+npm install --save-dev --save-exact prettier@3.10.1
+npm run format
+```
+
+Then use the full verification sequence below. Review the formatting diff before committing; the first pass may normalize existing files.
+
+```sh
+npm run format:check
 npm run lint
+npm test
 npm run build
 ```
 
-Only start the development server when requested. Check the frontend/API port and trusted-origin configuration before integrating authentication. There is currently no configured test runner, formatter or typecheck script.
+Only start the development server when requested; dev is separate from verification. Check the frontend/API port and trusted-origin configuration before integration. The authentication unit suite uses Node's built-in test runner and TypeScript stripping (Node 22.18+). Prettier uses .prettierrc.json and .prettierignore. No third-party test runner or typecheck script is configured.
+
+Start the frontend separately when needed:
+
+```sh
+npm run dev -- --port 4000
+```
+
+## Platform authentication
+
+### Configuration and prerequisites
+
+Copy .env.local.example to an untracked .env.local if it does not already exist. The example matches the API examples: Next runs at http://localhost:4000 and Nest at http://localhost:3000. Both services must be started by the human. No frontend database connection or authentication secret is needed.
+
+- AKIBA_ADMIN_ORIGIN must exactly match the API's PLATFORM_ADMIN_ORIGIN, including scheme and port, and the origin opened in the browser.
+- AKIBA_API_ORIGIN is the server-only upstream origin and must match the API's accepted API_PUBLIC_ORIGIN authority. It must resolve to the API, not back to Next. Do not configure an arbitrary internal authority that the API rejects.
+- In local HTTP development the API must use PLATFORM_AUTH_COOKIE_SECURE=false. HTTPS frontend origins require the API's secure cookie configuration. Production requires HTTPS for both origins and PLATFORM_AUTH_COOKIE_SECURE=true.
+- .env.production.example contains deployment placeholders, not deployed hostnames. Provide verified values through the deployment environment.
+- An eligible platform identity, password and enrolled active authenticator must already exist in the backend. This frontend does not bootstrap an owner, enable authentication bypasses or create MFA credentials.
+
+All browser authentication traffic is same-origin. Four fixed Next adapters contact the canonical API; no wildcard proxy or browser-visible upstream secret is introduced.
+
+| Browser route     | Method | Canonical API route              | Contract                                                                |
+| ----------------- | ------ | -------------------------------- | ----------------------------------------------------------------------- |
+| /api/auth/login   | POST   | /api/v1/platform/auth/login      | Email/password; MFA_REQUIRED, expiry and available methods              |
+| /api/auth/verify  | POST   | /api/v1/platform/auth/mfa/verify | Exactly one TOTP/recovery proof; authenticated or mfa_recovery_required |
+| /api/auth/session | GET    | /api/v1/platform/auth/me         | Full verified platform session; narrow safe profile returned            |
+| /api/auth/logout  | POST   | /api/v1/platform/auth/logout     | Server revocation and cookie clearing; 204 only on confirmation         |
+
+The API sets origin-bound HttpOnly challenge/session cookies and a readable double-submit CSRF cookie. The adapters validate exact browser Origin for mutations, compare CSRF cookie/header proofs for verification/logout and send the configured Origin upstream. Session GET requires a valid Origin or same-origin Fetch Metadata. No incoming Host, forwarded host, user IDs or permission headers establish authority. Cookie attributes and response shapes are checked before forwarding. Terminal MFA cookie clearing reaches the browser. Secrets and upstream CSRF response fields are not copied into browser JSON; only the CSRF cookie is intentionally JavaScript-readable.
+
+Requests and upstream responses have bounded bodies and timeouts; redirects are rejected. API problems are mapped to safe authored messages and correlation IDs. No raw exception/detail field is displayed. Authentication content is no-store and framing/referrer protections are configured. There is no shared session cache: React.cache deduplicates only one server render.
+
+### Login, MFA and protected pages
+
+/login checks the existing server session behind Suspense. A valid full session redirects to /. A confirmed missing/expired session shows the password form. A 403 shows access unavailable; temporary service failures show a retryable state. No private content streams before verification.
+
+The login form reuses shared Input, Form, Button and Icon, including a backward-compatible trailing password-visibility action. Validation follows login limits rather than imposing a new password-creation policy. Passwords remain in native form fields only, are never trimmed or stored in React/browser persistence, and are cleared when advancing to MFA. Submission gates block repeated clicks and Enter.
+
+Password success never grants workspace access. TOTP uses the real MFA endpoint, then /me must confirm a full session before a hard navigation clears the login navigation cache. Codes are not verified locally or persisted. A refreshed pending challenge may show the authenticator form based on HttpOnly cookie presence; that presence is only a UI hint, and the backend must validate every proof. The current API has no challenge-method introspection endpoint, so recovery choices after refresh require restarting password sign-in to retrieve the real available methods. Back to sign in clears local fields/state; it does not claim to revoke the backend challenge. Subsequent login replaces the browser proof; the backend enforces expiry and consumption.
+
+Recovery-code verification is supported when advertised by login, but its mfa_recovery_required result never opens /. The UI explains the restriction and offers confirmed server logout. Authenticator repair/enrollment settings are outside this milestone. Email OTP is intentionally not presented as full platform authentication: the backend cannot grant full authority through that method.
+
+The former starter page is now a verified account landing page under the (platform) route group. It shows only the current account identity; it does not implement dashboards, analytics or organization features. The group layout centralizes session protection, and the page also verifies its own data access through the shared server session helper. Future platform pages belong inside this group and must verify access near protected data reads/actions; a layout alone is insufficient.
+
+Only the existing / landing route is an approved post-login destination. External, encoded, protocol-relative, login-loop and unimplemented destinations fall back to /. Add future routes only with verified permission requirements.
+
+The client session provider blocks content during checks, discards obsolete results and revalidates on navigation, focus, page restoration, visibility return and meaningful user input (at most once per minute for activity checks). It deliberately does not poll an idle tab: the backend's /me refreshes idle expiry. Absolute expiration has a local timer; idle expiry/revocation is confirmed at the next real check/protected request. The API does not expose idleExpiresAt, so this UI does not manufacture an idle deadline or claim instantaneous server-revocation notification.
+
+Confirmed 401 responses invalidate the protected view; 403 and network/server errors remain distinct blocked states with retry. Logout confirms backend revocation before clearing the frontend view and hard-navigating to login. A sign-out BroadcastChannel notifies other open tabs without transmitting secrets. Deployment must configure trusted proxy/client-IP handling and edge rate limiting: these adapters do not forward untrusted client IP headers, so the backend may observe a shared frontend egress address.
+
+### Authentication verification
+
+The native unit suite in test/auth.test.mjs covers input contracts, full-session assurance, restricted recovery, safe errors, approved redirects, CSRF comparison, trusted origins and cookie isolation/attributes. It does not establish browser rendering, interaction accessibility or live backend guarantees. No checks have been executed by the agent.
+
+After running format:check, lint, npm test and build, manually verify the real flow against a permitted development API: password failure/success, TOTP failure/success/expiry, refresh with pending MFA, required labels and visibility toggle, rapid repeated submissions, restricted recovery, existing-session redirects, server revocation/expiration, safe retry after network failure, 403 handling, confirmed logout, multiple tabs, narrow layouts, keyboard/focus, reduced motion and dark mode. Browser/component automation and deployed end-to-end verification remain outstanding; no frontend test framework was installed.
 
 ## Shared components
 
@@ -20,17 +85,17 @@ Import components directly from src/components/shared; no additional dependency 
 
 Each styled component file imports its own same-name CSS Module. Components do not share module files; global CSS contains shared design tokens and application foundations. Reusable Field markup owns field.module.css while each consuming control owns its own control styles.
 
-| Module | Exports | Behavior |
-| --- | --- | --- |
-| button.tsx | Button | Icons, variants, sizes, full width, pending state and async click locking |
-| form.tsx | Form | FormData submission, synchronous duplicate gate, pending context and safe fallback errors |
-| input.tsx | Input | Native input types, leading icon, label, hint and error |
-| textarea.tsx | Textarea | Resizable native textarea with leading icon |
-| select.tsx | Select | Native single choice or a checkbox dropdown for multiple choices |
-| checkbox.tsx | Checkbox | Native checkbox with label, hint and error |
-| radio.tsx | Radio, RadioGroup | Native radio navigation and semantic fieldset grouping |
-| toast.tsx | ToastProvider, useToast | Globally mounted top-center notifications |
-| icon.tsx | Icon | Lightweight decorative SVG icons; no remote icon requests |
+| Module       | Exports                 | Behavior                                                                                  |
+| ------------ | ----------------------- | ----------------------------------------------------------------------------------------- |
+| button.tsx   | Button                  | Icons, variants, sizes, full width, pending state and async click locking                 |
+| form.tsx     | Form                    | FormData submission, synchronous duplicate gate, pending context and safe fallback errors |
+| input.tsx    | Input                   | Native input types, leading icon, label, hint and error                                   |
+| textarea.tsx | Textarea                | Resizable native textarea with leading icon                                               |
+| select.tsx   | Select                  | Native single choice or a checkbox dropdown for multiple choices                          |
+| checkbox.tsx | Checkbox                | Native checkbox with label, hint and error                                                |
+| radio.tsx    | Radio, RadioGroup       | Native radio navigation and semantic fieldset grouping                                    |
+| toast.tsx    | ToastProvider, useToast | Globally mounted top-center notifications                                                 |
+| icon.tsx     | Icon                    | Lightweight decorative SVG icons; no remote icon requests                                 |
 
 Inputs, textareas, selects and buttons have default icons and accept a custom decorative React node through icon. Provide unique, stable id values and visible labels for form controls. Native attributes such as required, disabled, autoComplete, minLength and maxLength remain available on inputs and textareas. Checkbox and Radio accept native input attributes and refs. Radio options in one group must share a name; add required to the Radio inputs when selection is mandatory. RadioGroup groups and describes them; it does not invent a validation policy.
 
@@ -59,26 +124,68 @@ export function ProfileForm({
   const toast = useToast();
 
   return (
-    <Form onSubmitAction={async (data) => {
-      await saveAction(data);
-      toast.success("Changes saved.");
-    }}>
-      <Input id="profile-name" name="name" label="Name" required
-        autoComplete="name" maxLength={100} icon={<Icon name="user" />} />
-      <Input id="profile-email" name="email" type="email" label="Email"
-        required autoComplete="email" />
-      <Select id="profile-language" name="language" label="Language"
-        required options={[{ value: "en", label: "English" }]} />
-      <Select id="profile-notifications" name="notifications" label="Notifications"
-        multiple options={[
+    <Form
+      onSubmitAction={async (data) => {
+        await saveAction(data);
+        toast.success("Changes saved.");
+      }}
+    >
+      <Input
+        id="profile-name"
+        name="name"
+        label="Name"
+        required
+        autoComplete="name"
+        maxLength={100}
+        icon={<Icon name="user" />}
+      />
+      <Input
+        id="profile-email"
+        name="email"
+        type="email"
+        label="Email"
+        required
+        autoComplete="email"
+      />
+      <Select
+        id="profile-language"
+        name="language"
+        label="Language"
+        required
+        options={[{ value: "en", label: "English" }]}
+      />
+      <Select
+        id="profile-notifications"
+        name="notifications"
+        label="Notifications"
+        multiple
+        options={[
           { value: "security", label: "Security updates" },
           { value: "product", label: "Product updates" },
-        ]} />
+        ]}
+      />
       <RadioGroup id="profile-summary" label="Summary frequency">
-        <Radio id="summary-daily" name="summary" value="daily" label="Daily" required />
-        <Radio id="summary-weekly" name="summary" value="weekly" label="Weekly" required />
+        <Radio
+          id="summary-daily"
+          name="summary"
+          value="daily"
+          label="Daily"
+          required
+        />
+        <Radio
+          id="summary-weekly"
+          name="summary"
+          value="weekly"
+          label="Weekly"
+          required
+        />
       </RadioGroup>
-      <Checkbox id="profile-tips" name="tips" value="yes" label="Send helpful tips" />
+      <Checkbox
+        id="profile-tips"
+        name="tips"
+        value="yes"
+        label="Send helpful tips"
+      />
       <Textarea id="profile-notes" name="notes" label="Notes" maxLength={500} />
       <Button type="submit" loadingLabel="Saving…" icon={<Icon name="check" />}>
         Save changes
@@ -122,7 +229,12 @@ toast.success("Changes saved."); // Only after confirmed server success.
 toast.error("We couldn't load the page. Try again.");
 toast.info("Your export is being prepared.");
 toast.warning("Review these changes before continuing.");
-const id = toast.show({ title: "Update", message: "Settings saved.", tone: "success", duration: 8000 });
+const id = toast.show({
+  title: "Update",
+  message: "Settings saved.",
+  tone: "success",
+  duration: 8000,
+});
 toast.dismiss(id);
 ```
 
@@ -142,4 +254,4 @@ The component implementation has not been browser-tested or built by the agent. 
 - Toasts stay top-center, support dismissal/pause, remain bounded and announce through assistive technology.
 - Every control has a label, visible focus and useful disabled/error states at narrow widths, high zoom, in dark mode and with reduced motion.
 
-No test runner or new dependency was added. API integration and server-side guarantees remain the responsibility of the consuming feature and canonical backend.
+The shared components need no additional runtime dependencies. Prettier is a development-only formatter. The native authentication-policy tests supplement the manual checks above; API integration and server-side guarantees remain the responsibility of the consuming feature and canonical backend.

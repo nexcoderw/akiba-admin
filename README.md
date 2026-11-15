@@ -32,6 +32,20 @@ npm run dev
 
 ## Platform authentication
 
+### UI icons
+
+All application UI glyphs use Hugeicons Stroke Rounded through the shared `Icon` component in
+`src/components/shared/icon.tsx`. It maps existing semantic names to static named imports from
+`@hugeicons/core-free-icons` and renders them with `@hugeicons/react`. Add new mappings there rather
+than introducing another icon library, custom SVG paths or remote icon requests. Decorative icons
+are hidden from assistive technology; icon-only controls keep their own accessible names. The
+primitive owns `icon.module.css` and uses currentColor for the existing light theme.
+Next's import optimization is configured for the free icon pack to limit barrel-import processing.
+
+The manifest pins the renderer and free icon pack. Run `npm install` to update the lockfile before
+verification or using `npm ci`. Installation, build and browser verification have not been run by
+the agent. Follow `.agents/icons.md` for future icon changes.
+
 ### Route groups and application theme
 
 Authentication UI pages and their shared route layout live under src/app/(auth). The login file is src/app/(auth)/login/page.tsx; its URL remains /login. The group layout renders the reusable AuthScreen presentation once, including while the page checks the session.

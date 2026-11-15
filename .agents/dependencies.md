@@ -1,6 +1,9 @@
 # Dependencies
 
-The stack declares Next.js, React, React DOM, TypeScript, ESLint, the React Compiler plugin and an exact Prettier development dependency. Authentication-policy tests use Node's built-in runner. No UI kit, query library, form library, third-party test runner or icon library is assumed.
+The stack declares Next.js, React, React DOM, TypeScript, ESLint, the React Compiler plugin and an exact
+Prettier development dependency. Hugeicons is the approved UI icon dependency: `@hugeicons/react`
+renders static icons from `@hugeicons/core-free-icons`. Authentication-policy tests use Node's built-in
+runner. No UI kit, query library, form library or third-party test runner is assumed.
 
 ## Adding a package
 

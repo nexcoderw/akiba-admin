@@ -1,8 +1,8 @@
 import type { InputHTMLAttributes, ReactNode, Ref } from "react";
 import { descriptionIds, type FieldProps } from "./field";
-import styles from "./controls.module.css";
+import styles from "./radio.module.css";
 
-export type RadioProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "type" | "children" | "name"> &
+export type RadioProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "type" | "children" | "name" | "aria-invalid"> &
   FieldProps & { name: string; ref?: Ref<HTMLInputElement> };
 
 export function Radio({ id, label, hint, error, className = "", ref, ...props }: RadioProps) {
@@ -14,7 +14,7 @@ export function Radio({ id, label, hint, error, className = "", ref, ...props }:
           ref={ref}
           id={id}
           type="radio"
-          aria-invalid={error ? true : props["aria-invalid"]}
+          data-invalid={error ? true : undefined}
           aria-describedby={descriptionIds(id, hint, error, props["aria-describedby"])}
           className={`${styles.choiceInput} ${className}`}
         />

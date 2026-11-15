@@ -1,0 +1,133 @@
+.control { position: relative; min-inline-size: 0; }
+
+.input {
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 3rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  padding: 0.75rem 0.875rem 0.75rem 2.875rem;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.input::placeholder { color: var(--ui-muted); opacity: 1; }
+
+.input:hover:not(:disabled) { border-color: var(--ui-border-hover); }
+
+.input:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; border-color: var(--ui-primary); }
+
+.input[aria-invalid="true"] { border-color: var(--ui-danger); }
+
+.input:disabled { background: var(--ui-subtle); color: var(--ui-muted); cursor: not-allowed; }
+
+.input:read-only:not(select):not(button) { background: var(--ui-subtle); }
+
+.leadingIcon, .trailingIcon {
+  position: absolute;
+  inset-block-start: 1.5rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: var(--ui-muted);
+  pointer-events: none;
+}
+
+.leadingIcon { inset-inline-start: 0.9375rem; }
+
+.trailingIcon { inset-inline-end: 0.9375rem; }
+
+.leadingIcon svg { inline-size: 1.125rem; block-size: 1.125rem; }
+
+.hint { font-size: 0.8125rem; line-height: 1.6; overflow-wrap: anywhere; }
+
+.hint { color: var(--ui-muted); }
+
+.choiceInput {
+  flex: 0 0 auto;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin-block-start: 0.125rem;
+  accent-color: var(--ui-primary);
+  cursor: pointer;
+}
+
+.choiceInput:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; }
+
+.option:has(input:disabled) { color: var(--ui-muted); cursor: not-allowed; }
+
+.choiceInput:disabled { cursor: not-allowed; }
+
+.select { appearance: none; padding-inline-end: 2.875rem; cursor: pointer; }
+
+.multiRoot { position: relative; min-inline-size: 0; }
+
+.multiTrigger { display: flex; align-items: center; gap: 0.5rem; padding-inline-end: 2.875rem; text-align: start; cursor: pointer; }
+
+.selectValue { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.selectValue[data-placeholder] { color: var(--ui-muted); }
+
+.count { flex-shrink: 0; border-radius: 0.375rem; padding: 0.125rem 0.4375rem; background: var(--ui-accent); color: var(--ui-primary); font-size: 0.75rem; font-weight: 700; }
+
+.nativeProxy {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dropdown {
+  position: absolute;
+  inset-block-start: calc(100% + 0.5rem);
+  inset-inline: 0;
+  z-index: 20;
+  padding: 0.375rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow);
+}
+
+.dropdown[hidden] { display: none; }
+
+.dropdownHeading { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding-inline-start: 0.5rem; color: var(--ui-muted); font-size: 0.75rem; }
+
+.textButton { min-block-size: 2.75rem; min-inline-size: 2.75rem; padding-inline: 0.5rem; border: 0; border-radius: 0.375rem; background: transparent; color: var(--ui-primary); font: inherit; font-weight: 600; cursor: pointer; }
+
+.textButton:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2px; }
+
+.optionList { max-block-size: min(16rem, 40dvh); overflow-y: auto; overscroll-behavior: contain; }
+
+.option { display: flex; align-items: flex-start; gap: 0.75rem; min-block-size: 2.75rem; padding: 0.75rem; border-radius: 0.5rem; color: var(--ui-text); font-size: 0.875rem; line-height: 1.5; overflow-wrap: anywhere; cursor: pointer; }
+
+.option:hover, .option:focus-within { background: var(--ui-subtle); }
+
+.option[data-selected] { background: var(--ui-accent); }
+
+.dropdownHint { padding: 0.625rem 0.5rem 0.25rem; color: var(--ui-muted); font-size: 0.6875rem; }
+
+@media (pointer: coarse) {
+  .input { font-size: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .input, .dropdown { border-color: CanvasText; }
+
+  .input:focus-visible, .choiceInput:focus-visible, .textButton:focus-visible { outline-color: Highlight; }
+
+  .option[data-selected], .count { outline: 1px solid Highlight; }
+}
+
+.input[data-invalid="true"] { border-color: var(--ui-danger); }

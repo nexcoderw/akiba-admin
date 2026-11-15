@@ -29,14 +29,7 @@ async function PlatformAccess({ children }: { children: ReactNode }) {
 
 export default function PlatformLayout({ children }: { children: ReactNode }) {
   return (
-    <Suspense
-      fallback={
-        <LoadingState
-          title="Checking your session"
-          message="We’re securely confirming your platform access before showing your workspace."
-        />
-      }
-    >
+    <Suspense fallback={<LoadingState phase="session-check" />}>
       <PlatformAccess>{children}</PlatformAccess>
     </Suspense>
   );

@@ -185,15 +185,8 @@ export function SessionProvider({
   }
   return (
     <LoadingState
-      title={
-        result.kind === "unauthenticated"
-          ? "Returning to sign in"
-          : "Checking your session"
-      }
-      message={
-        result.kind === "unauthenticated"
-          ? "Your session is no longer active. We’re taking you back to sign in."
-          : "We’re confirming your platform access before showing your workspace."
+      phase={
+        result.kind === "unauthenticated" ? "session-expired" : "session-check"
       }
     />
   );

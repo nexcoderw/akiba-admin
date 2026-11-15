@@ -15,11 +15,6 @@
 .header h1:focus {
   outline: none;
 }
-.validationSummary {
-  color: var(--ui-danger);
-  font-size: 0.8125rem;
-  line-height: 1.7;
-}
 .header p,
 .followUp > p {
   color: var(--ui-muted);

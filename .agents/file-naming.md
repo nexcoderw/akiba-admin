@@ -17,4 +17,3 @@ Names should reveal server-only transport, validation or feature responsibility 
 Prefer explicit exports and avoid broad barrels that blur client/server boundaries or introduce cycles. Use default exports when the framework requires them or an established local pattern warrants them.
 
 Renaming files is not a cosmetic excuse to expand scope. Review import updates and preserve user changes.
-

@@ -28,13 +28,7 @@ async function PlatformAccess({ children }: { children: ReactNode }) {
 
 export default function PlatformLayout({ children }: { children: ReactNode }) {
   return (
-    <Suspense
-      fallback={
-        <AuthScreen>
-          <AuthNotice checking />
-        </AuthScreen>
-      }
-    >
+    <Suspense fallback={null}>
       <PlatformAccess>{children}</PlatformAccess>
     </Suspense>
   );

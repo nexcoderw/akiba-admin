@@ -4,7 +4,7 @@ import {
   createContext, useContext, useRef, useState,
   type FormEvent, type FormHTMLAttributes,
 } from "react";
-import styles from "./controls.module.css";
+import styles from "./form.module.css";
 
 const SubmissionContext = createContext(false);
 

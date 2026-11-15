@@ -19,4 +19,3 @@ Dialogs and forms must remain usable with a virtual keyboard. Keep error message
 Review narrow/wide layouts, portrait/landscape, zoom, touch and keyboard input. Hidden responsive elements remain in the DOM: never render unauthorized data and rely on CSS to conceal it.
 
 Keep interaction behavior consistent across breakpoints. Responsive work must preserve performance and accessibility rather than shipping separate duplicated component trees unnecessarily.
-

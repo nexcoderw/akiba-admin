@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
+    optimizePackageImports: ["@hugeicons/core-free-icons"],
   },
   cacheComponents: true,
   partialPrefetching: true,

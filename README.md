@@ -27,7 +27,7 @@ Only start the development server when requested; dev is separate from verificat
 Start the frontend separately when needed:
 
 ```sh
-npm run dev -- --port 4000
+npm run dev
 ```
 
 ## Platform authentication
@@ -47,6 +47,8 @@ localStorage and sessionStorage are prohibited for all application data, includi
 ### Configuration and prerequisites
 
 Copy .env.local.example to an untracked .env.local if it does not already exist. The example matches the API examples: Next runs at http://localhost:4000 and Nest at http://localhost:3000. Both services must be started by the human. No frontend database connection or authentication secret is needed.
+
+Both npm run dev and npm run start select port 4000 by default. The API's configured default is port 3000, so the two services do not compete for the same listener.
 
 - AKIBA_ADMIN_ORIGIN must exactly match the API's PLATFORM_ADMIN_ORIGIN, including scheme and port, and the origin opened in the browser.
 - AKIBA_API_ORIGIN is the server-only upstream origin and must match the API's accepted API_PUBLIC_ORIGIN authority. It must resolve to the API, not back to Next. Do not configure an arbitrary internal authority that the API rejects.

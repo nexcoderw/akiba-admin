@@ -1,0 +1,11 @@
+.action {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+}
+.error {
+  max-inline-size: 30rem;
+  color: var(--ui-danger);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}

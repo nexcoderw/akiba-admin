@@ -65,7 +65,7 @@ setup-page link and a separate single-use setup code to paste into the form. The
 a URL, browser history, server props or browser storage. Do not attach
 analytics, session replay, third-party QR services or link tracking to enrollment messages/pages.
 
-The user explicitly continues, creates and confirms a 15-character-minimum password, manually enters
+The user explicitly continues, creates and confirms a 8-character-minimum password, manually enters
 the setup key into a time-based authenticator, then verifies a six-digit code. Activation displays ten
 recovery codes once, requires a local saved-codes acknowledgment and returns to `/login` for normal
 authentication with a fresh code. The acknowledgment is UI guidance, never identity proof. No admin

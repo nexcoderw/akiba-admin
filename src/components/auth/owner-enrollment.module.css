@@ -1,0 +1,99 @@
+.panel {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.eyebrow {
+  color: var(--ui-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  line-height: 1.15;
+}
+
+.intro,
+.hint {
+  color: var(--ui-muted);
+  line-height: 1.6;
+}
+
+.hint {
+  font-size: 0.875rem;
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.problem {
+  padding: 1rem;
+  border: 1px solid var(--ui-danger);
+  border-radius: 0.75rem;
+  color: var(--ui-danger);
+  background: var(--ui-danger-surface);
+  overflow-wrap: anywhere;
+}
+
+.instructions {
+  padding-inline-start: 1.25rem;
+  line-height: 1.7;
+}
+
+.secret,
+.codes {
+  border: 1px solid var(--brand-200);
+  border-radius: 0.75rem;
+  background: var(--brand-50);
+  color: var(--ui-primary);
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.secret {
+  padding: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.codes {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+  font-size: 0.8rem;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--ui-divider);
+  padding-top: 1rem;
+}
+
+.footer p {
+  flex-basis: 100%;
+}
+
+.link {
+  justify-self: start;
+  color: var(--ui-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 4px;
+}

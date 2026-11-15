@@ -19,4 +19,3 @@ Do not add Prisma schema files, database migrations, direct database clients or 
 Use App Router route groups and private folders only according to the installed framework docs. Avoid accidental public routes from organizational folders.
 
 Do not create docs directories, completion reports, generated command scripts or empty feature scaffolding by default. Maintain relevant existing documentation and these explicitly requested rules.
-

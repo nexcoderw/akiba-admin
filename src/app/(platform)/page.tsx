@@ -57,14 +57,7 @@ async function AccountLanding() {
 
 export default function Home() {
   return (
-    <Suspense
-      fallback={
-        <LoadingState
-          title="Loading your workspace"
-          message="Your session is confirmed. We’re preparing your account overview."
-        />
-      }
-    >
+    <Suspense fallback={<LoadingState phase="workspace" />}>
       <AccountLanding />
     </Suspense>
   );

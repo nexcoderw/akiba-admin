@@ -5,6 +5,7 @@ import { Button } from "@/components/shared/button";
 import { Form } from "@/components/shared/form";
 import { Icon } from "@/components/shared/icon";
 import { Input } from "@/components/shared/input";
+import { OtpInput } from "@/components/shared/otp-input";
 import {
   AuthRequestError,
   readSession,
@@ -49,6 +50,7 @@ export function LoginForm({
   }>({});
   const [problem, setProblem] = useState<SafeProblem>();
   const [challengeExpired, setChallengeExpired] = useState(false);
+  const [otp, setOtp] = useState("");
   const email = useRef<HTMLInputElement>(null);
   const password = useRef<HTMLInputElement>(null);
   const code = useRef<HTMLInputElement>(null);
@@ -102,6 +104,7 @@ export function LoginForm({
   function restart() {
     if (busy) return;
     if (code.current) code.current.value = "";
+    setOtp("");
     setFields({});
     setProblem(undefined);
     setVisible(false);
@@ -296,32 +299,51 @@ export function LoginForm({
                       message:
                         "We couldn't confirm verification. Check your session before submitting another code.",
                     });
-                  } else showError(error);
+                  } else {
+                    showError(error);
+                    if (method === "totp") {
+                      // Clear the rejected code and return focus so retyping is immediate.
+                      setOtp("");
+                      requestAnimationFrame(() => code.current?.focus());
+                    }
+                  }
                 } finally {
                   setBusy(false);
                 }
               }}
             >
-              <Input
-                key={method}
-                ref={code}
-                id="login-code"
-                name="code"
-                label={
-                  method === "totp" ? "Verification code" : "Recovery code"
-                }
-                autoComplete="one-time-code"
-                inputMode={method === "totp" ? "numeric" : "text"}
-                autoCapitalize="none"
-                spellCheck={false}
-                maxLength={method === "totp" ? 6 : 64}
-                required
-                disabled={challengeExpired}
-                icon={<Icon name="lock" />}
-                error={fields.code}
-                placeholder={method === "totp" ? "000000" : "XXXX-XXXX-…"}
-                className={method === "totp" ? styles.code : undefined}
-              />
+              {method === "totp" ? (
+                <OtpInput
+                  key="totp"
+                  ref={code}
+                  id="login-code"
+                  name="code"
+                  label="Verification code"
+                  required
+                  disabled={challengeExpired}
+                  error={fields.code}
+                  value={otp}
+                  onValueChange={setOtp}
+                />
+              ) : (
+                <Input
+                  key="recovery_code"
+                  ref={code}
+                  id="login-code"
+                  name="code"
+                  label="Recovery code"
+                  autoComplete="one-time-code"
+                  inputMode="text"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  maxLength={64}
+                  required
+                  disabled={challengeExpired}
+                  icon={<Icon name="lock" />}
+                  error={fields.code}
+                  placeholder="XXXX-XXXX-…"
+                />
+              )}
               <Button
                 type="submit"
                 disabled={challengeExpired}
@@ -335,12 +357,13 @@ export function LoginForm({
             <div className={styles.secondaryActions}>
               {methods.includes("totp") &&
                 methods.includes("recovery_code") && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
+                    type="button"
+                    className={styles.link}
                     disabled={busy}
                     onClick={() => {
                       if (code.current) code.current.value = "";
+                      setOtp("");
                       setMethod(method === "totp" ? "recovery_code" : "totp");
                       setFields({});
                       setProblem(undefined);
@@ -349,16 +372,16 @@ export function LoginForm({
                     {method === "totp"
                       ? "Use a recovery code"
                       : "Use my authenticator"}
-                  </Button>
+                  </button>
                 )}
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
+                className={styles.link}
                 disabled={busy}
                 onClick={restart}
               >
                 Back to sign in
-              </Button>
+              </button>
             </div>
           </>
         ) : (
@@ -374,16 +397,22 @@ export function LoginForm({
           </div>
         ))}
       {step.kind === "confirming" && (
-        <div className={styles.followUp}>
+        <div className={styles.actionRow}>
           <Button
             fullWidth
             pending={busy}
             onClick={confirmSession}
-            loadingLabel="Checking access…"
+            loadingLabel="Checking"
+            icon={<Icon name="check" />}
           >
-            Check session again
+            Check again
           </Button>
-          <LogoutButton label="End sign-in and start again" disabled={busy} />
+          <LogoutButton
+            label="Cancel"
+            disabled={busy}
+            fullWidth
+            icon={<Icon name="close" />}
+          />
         </div>
       )}
       {step.kind === "recovery" && (

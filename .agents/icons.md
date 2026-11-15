@@ -1,10 +1,17 @@
 # Icons
 
-No icon package is currently declared. Reuse suitable existing assets or accessible SVG before proposing a dependency. Do not install a library merely because the reference project used it.
+Hugeicons is the required UI icon library. Use `@hugeicons/react` with static named imports from
+`@hugeicons/core-free-icons` (Stroke Rounded). Render icons through `src/components/shared/icon.tsx`;
+extend its typed name map when another icon is needed. Do not add another icon library, hand-drawn
+SVG UI glyphs, CSS-drawn replacement glyphs, remote icon URLs or the deprecated `hugeicons-react` package.
+Brand logos and native browser form indicators are distinct from UI glyphs.
 
 ## Consistency and cost
 
-Use one coherent visual family, consistent stroke/weight and deliberate sizes. Import individual icons if an approved library supports it; avoid importing an entire catalog or large runtime for a few symbols.
+Use one coherent visual family, consistent stroke/weight and deliberate sizes. Import individual
+icons by name; never use namespace imports, full-catalog lookup or dynamic full-bundle loading.
+Keep the client boundary at the shared icon primitive; do not make pages or layouts client components
+just to display an icon. Icons inherit currentColor and retain the primitive's matching CSS Module.
 
 Do not use arbitrary emoji as professional product icons. Avoid remote icon requests that add latency, tracking or availability dependencies.
 

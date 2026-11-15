@@ -338,20 +338,28 @@ function MultipleSelect({
                 className={styles.option}
                 data-selected={selected.includes(option.value) || undefined}
               >
-                <input
-                  id={`${id}-option-${index}`}
-                  type="checkbox"
-                  checked={selected.includes(option.value)}
-                  disabled={disabled || option.disabled}
-                  className={styles.choiceInput}
-                  onChange={(event) =>
-                    update(
-                      event.currentTarget.checked
-                        ? [...selected, option.value]
-                        : selected.filter((item) => item !== option.value),
-                    )
-                  }
-                />
+                <span className={styles.choiceControl}>
+                  <input
+                    id={`${id}-option-${index}`}
+                    type="checkbox"
+                    checked={selected.includes(option.value)}
+                    disabled={disabled || option.disabled}
+                    className={styles.choiceInput}
+                    onChange={(event) =>
+                      update(
+                        event.currentTarget.checked
+                          ? [...selected, option.value]
+                          : selected.filter((item) => item !== option.value),
+                      )
+                    }
+                  />
+                  <Icon
+                    name="check"
+                    width={15}
+                    height={15}
+                    className={styles.choiceCheck}
+                  />
+                </span>
                 <span>{option.label}</span>
               </label>
             ))}

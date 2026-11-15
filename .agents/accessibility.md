@@ -21,4 +21,3 @@ Tables need headers and understandable relationships. Loading and empty states m
 Maintain sufficient contrast, readable text, reduced-motion behavior and usable high-contrast modes. Design generous pointer targets, aiming for at least 44 CSS pixels where practical. Support text enlargement and reflow at high zoom without losing controls or content.
 
 Human verification must cover keyboard-only use, screen-reader announcements, focus recovery, zoom and narrow viewports. Automated checks, if later configured, supplement manual testing.
-

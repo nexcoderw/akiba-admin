@@ -7,6 +7,7 @@ import { Icon } from "@/components/shared/icon";
 import { Input } from "@/components/shared/input";
 import { OtpInput } from "@/components/shared/otp-input";
 import { useToast } from "@/components/shared/toast";
+import { LoadingState } from "@/components/shared/loading-state";
 import {
   AuthRequestError,
   readSession,
@@ -24,7 +25,8 @@ import styles from "./login-form.module.css";
 
 type Step = { kind: "password" } | { kind: "otp"; challenge: Challenge | null };
 
-type VerificationState = "input" | "retry" | "recovery-required";
+type VerificationState =
+  "input" | "verifying" | "checking-session" | "retry" | "recovery-required";
 
 export function LoginForm({
   pendingOnLoad,
@@ -106,6 +108,7 @@ export function LoginForm({
 
   async function confirmSession() {
     clearErrorToast();
+    setVerificationState("checking-session");
     const result = await readSession();
     if (result.kind === "authenticated") {
       window.location.replace(safeDestination(next));
@@ -149,6 +152,22 @@ export function LoginForm({
     step.kind === "otp" ? (step.challenge?.methods ?? ["totp"]) : [];
   const canVerify =
     methods.includes("totp") || methods.includes("recovery_code");
+
+  if (
+    verificationState === "verifying" ||
+    verificationState === "checking-session"
+  ) {
+    return (
+      <LoadingState
+        phase={
+          verificationState === "verifying"
+            ? "mfa-verification"
+            : "session-check"
+        }
+        variant="inline"
+      />
+    );
+  }
 
   return (
     <div className={styles.login}>
@@ -278,7 +297,6 @@ export function LoginForm({
               fullWidth
               pending={busy}
               onClick={retrySessionCheck}
-              loadingLabel="Checking your session…"
               icon={<Icon name="check" />}
             >
               Check session
@@ -321,10 +339,11 @@ export function LoginForm({
                 if (challengeExpired) return;
                 setFields({});
                 setBusy(true);
+                if (code.current) code.current.value = "";
+                setOtp("");
+                setVerificationState("verifying");
                 try {
                   const verified = await verifyMfa(method, value);
-                  if (code.current) code.current.value = "";
-                  setOtp("");
                   if (verified.status === "mfa_recovery_required") {
                     setVerificationState("recovery-required");
                     return;
@@ -341,6 +360,7 @@ export function LoginForm({
                       "We couldn't confirm verification. Check your session before submitting another code.",
                     );
                   } else {
+                    setVerificationState("input");
                     showRequestError(error);
                     if (method === "totp") {
                       // Clear the rejected code and return focus so retyping is immediate.
@@ -389,7 +409,6 @@ export function LoginForm({
                 type="submit"
                 disabled={challengeExpired}
                 fullWidth
-                loadingLabel="Verifying…"
                 icon={<Icon name="check" />}
               >
                 Verify and continue

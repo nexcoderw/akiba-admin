@@ -1,0 +1,47 @@
+.field {
+  display: grid;
+  gap: 0.5rem;
+  min-inline-size: 0;
+}
+
+.required { color: var(--ui-muted); font-size: 0.75rem; font-weight: 400; }
+
+.choiceHint, .error { font-size: 0.8125rem; line-height: 1.6; overflow-wrap: anywhere; }
+
+.choiceHint { color: var(--ui-muted); }
+
+.error { color: var(--ui-danger); }
+
+.choiceHint { padding-inline-start: 2rem; }
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-block-size: 2.75rem;
+  padding-block: 0.625rem;
+  color: var(--ui-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.choiceInput {
+  flex: 0 0 auto;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin-block-start: 0.125rem;
+  accent-color: var(--ui-primary);
+  cursor: pointer;
+}
+
+.choiceInput:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; }
+
+.choice:has(input:disabled) { color: var(--ui-muted); cursor: not-allowed; }
+
+.choiceInput:disabled { cursor: not-allowed; }
+
+@media (forced-colors: active) {
+  .choiceInput:focus-visible { outline-color: Highlight; }
+}

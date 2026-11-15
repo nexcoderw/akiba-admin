@@ -10,6 +10,8 @@ All workflows must work with a keyboard. Keep focus visible, logical and unobscu
 
 Associate hints and errors with fields; identify invalid inputs programmatically and in text. Announce meaningful asynchronous outcomes without repeatedly announcing every keystroke. Do not rely on color alone.
 
+Use ARIA attributes supported by the element's actual implicit or explicit role. Do not add aria-invalid to native radio inputs or disclosure buttons; associate their error text with aria-describedby, expose group validity where supported, and use data-invalid for visual styling. Do not change an element's role or suppress a lint rule merely to allow an unsupported attribute.
+
 Dialogs require an accessible name, appropriate focus entry/containment, a clear close path and focus restoration. Use established accessible primitives when available; do not assume installing a library is authorized.
 
 Tables need headers and understandable relationships. Loading and empty states must be understandable to assistive technology. Navigation should expose the current page.

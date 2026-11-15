@@ -93,8 +93,11 @@ export function Button({
         data-size={size}
         data-full-width={fullWidth || undefined}
         data-pending={busy || undefined}
+        data-failed={failed || undefined}
         onClick={handleClick}
       >
+        {/* Decorative light sweep; clipped to the pill shape. */}
+        <span className={styles.shine} aria-hidden="true" />
         <span className={styles.content} aria-hidden={busy}>
           <span className={styles.icon} aria-hidden="true">
             {icon ?? <Icon name="arrow-right" />}

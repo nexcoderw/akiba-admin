@@ -227,6 +227,7 @@ export function OwnerEnrollment() {
             autoComplete="new-password"
             minLength={8}
             maxLength={4096}
+            placeholder="Create a password"
             required
             hint="Use a unique passphrase of at least 8 characters. A password manager is recommended."
           />
@@ -239,6 +240,7 @@ export function OwnerEnrollment() {
             autoComplete="new-password"
             minLength={8}
             maxLength={4096}
+            placeholder="Re-enter your password"
             required
           />
           <Button

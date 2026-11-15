@@ -54,7 +54,42 @@ Both npm run dev and npm run start select port 4000 by default. The API's config
 - AKIBA_API_ORIGIN is the server-only upstream origin and must match the API's accepted API_PUBLIC_ORIGIN authority. It must resolve to the API, not back to Next. Do not configure an arbitrary internal authority that the API rejects.
 - In local HTTP development the API must use PLATFORM_AUTH_COOKIE_SECURE=false. HTTPS frontend origins require the API's secure cookie configuration. Production requires HTTPS for both origins and PLATFORM_AUTH_COOKIE_SECURE=true.
 - .env.production.example contains deployment placeholders, not deployed hostnames. Provide verified values through the deployment environment.
-- An eligible platform identity, password and enrolled active authenticator must already exist in the backend. This frontend does not bootstrap an owner, enable authentication bypasses or create MFA credentials.
+- Existing staff use normal sign-in. The first pending Platform Owner can complete the operator-authorized `/enroll/platform-owner` flow after the matching API and canonical database migration are deployed and verified. No browser action can reserve another owner or bypass authentication.
+
+### First platform owner setup
+
+The API operator first reserves the sole pending owner and explicitly sends an enrollment email
+through the configured Resend adapter. The fixed auth-group route `/enroll/platform-owner` uses the
+same light Outfit/primary-purple layout and shared controls as sign-in. The email includes a fixed
+setup-page link and a separate single-use setup code to paste into the form. The proof never enters
+a URL, browser history, server props or browser storage. Do not attach
+analytics, session replay, third-party QR services or link tracking to enrollment messages/pages.
+
+The user explicitly continues, creates and confirms a 15-character-minimum password, manually enters
+the setup key into a time-based authenticator, then verifies a six-digit code. Activation displays ten
+recovery codes once, requires a local saved-codes acknowledgment and returns to `/login` for normal
+authentication with a fresh code. The acknowledgment is UI guidance, never identity proof. No admin
+session is issued during setup. Secrets remain only in short-lived UI memory and approved HttpOnly
+cookies; there is no localStorage or sessionStorage persistence.
+
+Six fixed `/api/auth/enrollment/{exchange,status,password,setup,complete,cancel}` adapters enforce the
+exact browser Origin, bounded DTOs, approved cookies, no-store responses and matching CSRF for every
+operation after mailbox exchange. Upstream bodies are validated and reduced before reaching the
+browser; there is no generic proxy or caller-selected recipient/user/role. The API remains authoritative
+for pending-state eligibility, role binding, expiration, attempts and transactional activation.
+
+After a timeout, check setup status before resubmitting. Refresh can resume password/MFA progress;
+explicit key regeneration invalidates the previous unverified key and is limited by the API. An
+uncertain final activation goes to normal sign-in instead of replaying completion. If final recovery
+disclosure was lost, codes cannot be redisplayed; use approved authenticated MFA management to replace
+them. Expired or cancelled setup requires a fresh operator email. Never manually activate identities.
+
+Backend prerequisites: reviewed/applied `20261115120000_platform_owner_enrollment`, regenerated/built
+`@nexcoderw/akiba-db`, matching API, independent authentication/TOTP keys, verified Resend sender and
+`PLATFORM_OWNER_BOOTSTRAP_ENABLED=true` during enrollment only. Origins must match exactly. No new
+frontend secret or public feature flag is required. This flow still needs human formatting, checks,
+browser/keyboard/narrow-screen testing and a real development email round trip; no production readiness
+is claimed. Existing managed-owner/RLS and deployment release blockers remain.
 
 All browser authentication traffic is same-origin. Four fixed Next adapters contact the canonical API; no wildcard proxy or browser-visible upstream secret is introduced.
 

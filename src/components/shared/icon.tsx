@@ -16,8 +16,11 @@ import {
   ViewIcon,
   ViewOffSlashIcon,
 } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import type { SVGProps } from "react";
+import {
+  HugeiconsIcon,
+  type HugeiconsIconProps,
+  type IconSvgElement,
+} from "@hugeicons/react";
 import styles from "./icon.module.css";
 
 export type IconName =
@@ -58,7 +61,9 @@ export function Icon({
   name,
   className = "",
   ...props
-}: Omit<SVGProps<SVGSVGElement>, "children" | "name"> & { name: IconName }) {
+}: Omit<HugeiconsIconProps, "icon" | "altIcon" | "showAlt" | "children" | "name"> & {
+  name: IconName;
+}) {
   return (
     <HugeiconsIcon
       icon={icons[name]}

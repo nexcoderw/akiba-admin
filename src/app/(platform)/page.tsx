@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session.server";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { AuthNotice } from "@/components/auth/auth-notice";
 import { Icon } from "@/components/shared/icon";
 import styles from "./page.module.css";
 
@@ -43,7 +42,7 @@ async function AccountLanding() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<AuthNotice checking />}>
+    <Suspense fallback={null}>
       <AccountLanding />
     </Suspense>
   );

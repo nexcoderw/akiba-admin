@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { descriptionIds, Field, type FieldProps } from "./field";
 import { Icon } from "./icon";
-import styles from "./controls.module.css";
+import styles from "./select.module.css";
 
 export interface SelectOption {
   value: string;
@@ -180,7 +180,7 @@ function MultipleSelect({
             aria-expanded={open && !disabled}
             aria-controls={`${id}-options`}
             aria-describedby={descriptionIds(id, hint, fieldError, externalDescription)}
-            aria-invalid={fieldError ? true : undefined}
+            data-invalid={fieldError ? true : undefined}
             className={`${styles.input} ${styles.multiTrigger} ${className}`}
             onClick={() => setOpen((current) => !current)}
             onKeyDown={(event) => {

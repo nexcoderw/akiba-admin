@@ -164,7 +164,6 @@ export function LoginForm({
             ? "mfa-verification"
             : "session-check"
         }
-        variant="inline"
       />
     );
   }

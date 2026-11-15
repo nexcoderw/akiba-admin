@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/shared/button";
 import { Icon } from "@/components/shared/icon";
 import { AuthRequestError, endSession } from "@/lib/auth/browser";
@@ -9,18 +9,23 @@ import styles from "./logout-button.module.css";
 export function LogoutButton({
   label = "Sign out",
   disabled,
+  fullWidth = false,
+  icon,
 }: {
   label?: string;
   disabled?: boolean;
+  fullWidth?: boolean;
+  icon?: ReactNode;
 }) {
   const [error, setError] = useState<string>();
   return (
-    <div className={styles.action}>
+    <div className={styles.action} data-full-width={fullWidth || undefined}>
       <Button
         variant="secondary"
         disabled={disabled}
+        fullWidth={fullWidth}
         loadingLabel="Signing out…"
-        icon={<Icon name="arrow-right" />}
+        icon={icon ?? <Icon name="arrow-right" />}
         onClick={async () => {
           setError(undefined);
           try {

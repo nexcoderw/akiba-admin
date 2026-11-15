@@ -1,4 +1,5 @@
 import type { SVGProps } from "react";
+import styles from "./icon.module.css";
 
 export type IconName =
   | "arrow-right"
@@ -32,6 +33,7 @@ const paths: Record<IconName, string> = {
 /** Decorative by default; put an accessible name on the enclosing control. */
 export function Icon({
   name,
+  className = "",
   ...props
 }: Omit<SVGProps<SVGSVGElement>, "children" | "name"> & { name: IconName }) {
   return (
@@ -47,6 +49,7 @@ export function Icon({
       aria-hidden="true"
       focusable="false"
       {...props}
+      className={`${styles.icon} ${className}`}
     >
       <path d={paths[name]} />
     </svg>

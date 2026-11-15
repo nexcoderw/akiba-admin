@@ -1,0 +1,131 @@
+.login {
+  display: grid;
+  gap: 1.75rem;
+  min-inline-size: 0;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 0.5rem;
+  border: 1px solid var(--ui-border);
+  border-radius: 2rem;
+  padding: 0.375rem 0.75rem;
+  color: var(--ui-primary);
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+}
+.badge svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+}
+.header h1 {
+  margin-block-end: 0.75rem;
+  color: var(--ui-text);
+  font-size: clamp(1.875rem, 4vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.05em;
+  overflow-wrap: anywhere;
+}
+.header h1:focus {
+  outline: none;
+}
+.validationSummary {
+  color: var(--ui-danger);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+.header p,
+.followUp > p {
+  color: var(--ui-muted);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+.form {
+  display: grid;
+  gap: 1.25rem;
+}
+.form > button {
+  margin-block-start: 0.375rem;
+}
+.visibility {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ui-muted);
+  cursor: pointer;
+}
+.visibility:hover {
+  color: var(--ui-text);
+  background: var(--ui-subtle);
+}
+.visibility:focus-visible {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: -2px;
+}
+.code {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 1.25rem;
+  letter-spacing: 0.3em;
+}
+.problem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  border: 1px solid var(--ui-danger);
+  border-radius: var(--ui-radius);
+  padding: 0.875rem;
+  background: var(--ui-danger-surface);
+  color: var(--ui-danger);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.problem > svg {
+  flex-shrink: 0;
+  margin-block-start: 0.125rem;
+}
+.problem small {
+  display: block;
+  margin-block-start: 0.5rem;
+  font-size: 0.6875rem;
+}
+.information {
+  border-inline-start: 2px solid var(--ui-primary);
+  padding-inline-start: 0.75rem;
+  color: var(--ui-muted);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+.secondaryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: center;
+}
+.followUp {
+  display: grid;
+  gap: 1rem;
+}
+.help {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-block-start: 1px solid var(--ui-border);
+  padding-block-start: 1.5rem;
+  color: var(--ui-muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.help svg {
+  flex-shrink: 0;
+  inline-size: 1rem;
+  block-size: 1rem;
+  margin-block-start: 0.0625rem;
+}

@@ -226,6 +226,7 @@ export function LoginForm({
             autoComplete="current-password"
             required
             maxLength={4096}
+            placeholder="Enter your password"
             icon={<Icon name="lock" />}
             error={fields.password}
             trailingAction={

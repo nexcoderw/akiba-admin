@@ -14,9 +14,11 @@ export function descriptionIds(
   error?: string,
   external?: string,
 ) {
-  return [hint && `${id}-hint`, error && `${id}-error`, external]
-    .filter(Boolean)
-    .join(" ") || undefined;
+  return (
+    [hint && `${id}-hint`, error && `${id}-error`, external]
+      .filter(Boolean)
+      .join(" ") || undefined
+  );
 }
 
 export function Field({
@@ -34,8 +36,16 @@ export function Field({
         {required && <span className={styles.required}> (required)</span>}
       </label>
       {children}
-      {hint && <p className={styles.hint} id={`${id}-hint`}>{hint}</p>}
-      {error && <p className={styles.error} id={`${id}-error`}>{error}</p>}
+      {hint && (
+        <p className={styles.hint} id={`${id}-hint`}>
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p className={styles.error} id={`${id}-error`}>
+          {error}
+        </p>
+      )}
     </div>
   );
 }

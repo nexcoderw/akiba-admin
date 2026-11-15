@@ -15,4 +15,3 @@ Public UI preferences may have harmless defaults. Missing security-sensitive set
 Development and production examples must express deliberate boolean defaults as true/false. Production must not inherit localhost origins, insecure cookies or development bypasses. Reconcile values with backend requirements; do not invent unused variables.
 
 The current .gitignore ignores .env* files. Add an example only when needed, with explicit ignore exceptions and secret review. Do not change actual environment values merely because an example exists. No database credentials or direct database connections belong in this frontend.
-

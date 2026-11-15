@@ -1,7 +1,7 @@
 /* ---------- Base (primary) ---------- */
 .button {
-  --btn-bg: linear-gradient(135deg, var(--brand-700), var(--brand-500));
-  --btn-bg-hover: linear-gradient(135deg, var(--brand-800), var(--brand-600));
+  --btn-bg: var(--ui-primary);
+  --btn-bg-hover: var(--ui-primary-hover);
   --btn-glow: rgb(62 15 141 / 28%);
 
   position: relative;
@@ -36,7 +36,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Hover layer: a second gradient fades in (gradients can't transition directly). */
+/* Hover layer: the darker solid color fades in over the base color. */
 .button::before {
   content: "";
   position: absolute;
@@ -107,8 +107,8 @@
 }
 
 .button[data-variant="danger"] {
-  --btn-bg: linear-gradient(135deg, var(--ui-danger-hover), var(--ui-danger));
-  --btn-bg-hover: linear-gradient(135deg, var(--ui-danger-hover), #7a1a12);
+  --btn-bg: var(--ui-danger);
+  --btn-bg-hover: var(--ui-danger-hover);
   --btn-glow: rgb(180 35 24 / 30%);
 
   color: var(--ui-on-danger);

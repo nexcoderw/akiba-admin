@@ -17,4 +17,3 @@ Understand enabled partial prefetching before changing Link options. Avoid prefe
 Preserve useful nonsecret filter state in the URL. Support browser back/forward behavior and avoid unnecessary full reloads. Show clear active navigation with aria-current. Restore or move focus appropriately after route changes and dialogs.
 
 Provide useful loading, unavailable and not-found states without disclosing unauthorized resources. A link must lead to an implemented destination; do not ship dead controls or simulated navigation as complete functionality.
-

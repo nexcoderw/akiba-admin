@@ -10,6 +10,8 @@ Keep derived values derived instead of synchronizing multiple versions through e
 
 ## Privacy and concurrency
 
+Do not use localStorage or sessionStorage for any application data. This includes seemingly harmless preferences and cached profiles. Keep UI state in memory; use an approved server contract for persistence and safe URL state for shareable filters. Do not add persistence middleware or bypass the lint restrictions.
+
 Never persist session tokens, passwords, MFA material or invitation proofs in browser storage or URL state. Scope identity-derived caches to the verified principal and clear them on logout or switching accounts. Avoid mutable process-global user state on the server.
 
 Cancel obsolete requests and ignore stale results. A slower prior search must not overwrite a newer one. Distinguish loading from empty or failed data.

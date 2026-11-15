@@ -19,4 +19,3 @@ Avoid copying entire external documents into source. Keep explanations close to 
 Do not claim an invariant is enforced unless the implementation enforces it. For example, a comment saying platform-only is insufficient without backend permission checks.
 
 Review comments during diffs for obsolete assumptions and misleading success claims.
-

@@ -55,41 +55,43 @@ export function Sidebar({
       data-open={open || undefined}
       aria-label="Platform sidebar"
     >
-      <nav aria-label="Platform navigation">
-        <p className={styles.heading}>Workspace</p>
-        <div className={styles.track} ref={trackRef}>
-          <span className={styles.indicator} aria-hidden="true" />
-          <ul className={styles.links}>
-            {navigationLinks.map(({ href, icon, label }, index) => {
-              const active =
-                href === "/"
-                  ? pathname === href
-                  : pathname === href || pathname.startsWith(`${href}/`);
+      <div className={styles.panel}>
+        <nav aria-label="Platform navigation">
+          <p className={styles.heading}>Workspace</p>
+          <div className={styles.track} ref={trackRef}>
+            <span className={styles.indicator} aria-hidden="true" />
+            <ul className={styles.links}>
+              {navigationLinks.map(({ href, icon, label }, index) => {
+                const active =
+                  href === "/"
+                    ? pathname === href
+                    : pathname === href || pathname.startsWith(`${href}/`);
 
-              return (
-                <li
-                  key={href}
-                  className={styles.item}
-                  style={{ "--i": index } as CSSProperties}
-                >
-                  <Link
-                    className={styles.link}
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    data-active={active || undefined}
-                    onNavigate={onNavigate}
+                return (
+                  <li
+                    key={href}
+                    className={styles.item}
+                    style={{ "--i": index } as CSSProperties}
                   >
-                    <span className={styles.icon} aria-hidden="true">
-                      <Icon name={icon} />
-                    </span>
-                    <span className={styles.label}>{label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </nav>
+                    <Link
+                      className={styles.link}
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      data-active={active || undefined}
+                      onNavigate={onNavigate}
+                    >
+                      <span className={styles.icon} aria-hidden="true">
+                        <Icon name={icon} />
+                      </span>
+                      <span className={styles.label}>{label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </nav>
+      </div>
     </aside>
   );
 }

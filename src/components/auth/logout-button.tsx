@@ -11,17 +11,20 @@ export function LogoutButton({
   disabled,
   fullWidth = false,
   icon,
+  size = "md",
 }: {
   label?: string;
   disabled?: boolean;
   fullWidth?: boolean;
   icon?: ReactNode;
+  size?: "sm" | "md" | "lg";
 }) {
   const [error, setError] = useState<string>();
   return (
     <div className={styles.action} data-full-width={fullWidth || undefined}>
       <Button
         variant="secondary"
+        size={size}
         disabled={disabled}
         fullWidth={fullWidth}
         loadingLabel="Signing out…"

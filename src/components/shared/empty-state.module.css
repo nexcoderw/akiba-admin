@@ -1,0 +1,63 @@
+.state {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-inline-size: 0;
+  min-block-size: min(30rem, 65svh);
+  padding: clamp(2rem, 6vw, 4rem) var(--space-4);
+  text-align: center;
+}
+.illustration {
+  display: grid;
+  place-items: center;
+  inline-size: 8rem;
+  block-size: 8rem;
+  margin-block-end: var(--space-6);
+  border: 1px solid var(--ui-divider);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ui-accent), transparent 72%);
+}
+.glyph {
+  display: grid;
+  place-items: center;
+  inline-size: 5rem;
+  block-size: 5rem;
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--radius-panel);
+  background: var(--ui-surface);
+  color: var(--ui-primary);
+  box-shadow: var(--shadow-panel);
+}
+.title {
+  max-inline-size: 30ch;
+  margin: 0;
+  font-size: var(--text-h3);
+  overflow-wrap: anywhere;
+}
+.description {
+  max-inline-size: 48ch;
+  margin-block: var(--space-3) 0;
+  color: var(--ui-muted);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-6);
+}
+@media (max-width: 30rem) {
+  .actions {
+    flex-direction: column;
+    inline-size: 100%;
+    max-inline-size: 20rem;
+  }
+}
+@media (forced-colors: active) {
+  .illustration,
+  .glyph {
+    border-color: CanvasText;
+  }
+}

@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth/session.server";
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { AuthNotice } from "@/components/auth/auth-notice";
 import { SessionProvider } from "@/components/auth/session-provider";
+import { PlatformLayout } from "@/components/layout/platform-layout";
 import { LoadingState } from "@/components/shared/loading-state";
 
 async function PlatformAccess({ children }: { children: ReactNode }) {
@@ -22,7 +23,7 @@ async function PlatformAccess({ children }: { children: ReactNode }) {
   }
   return (
     <SessionProvider initialSession={result.session}>
-      {children}
+      <PlatformLayout>{children}</PlatformLayout>
     </SessionProvider>
   );
 }

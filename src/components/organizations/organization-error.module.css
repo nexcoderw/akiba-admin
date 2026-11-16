@@ -1,0 +1,27 @@
+.error {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--radius-panel);
+  background: var(--ui-surface);
+}
+.error h2 {
+  margin: 0;
+  font-size: var(--text-h3);
+}
+.error p {
+  margin: 0;
+  max-inline-size: 40rem;
+  color: var(--ui-muted);
+}
+.icon {
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 1rem;
+  background: var(--ui-warning-surface);
+  color: var(--ui-warning);
+}

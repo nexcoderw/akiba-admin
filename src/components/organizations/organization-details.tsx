@@ -37,7 +37,7 @@ export function OrganizationDetails({
       onClose={onClose}
       footer={
         onEdit ? (
-          <Button icon={<Icon name="text" />} onClick={onEdit}>
+          <Button icon={<Icon name="pencil" />} onClick={onEdit}>
             Edit organization
           </Button>
         ) : undefined

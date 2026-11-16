@@ -8,6 +8,8 @@ import {
   organizationStatuses,
   pageLinks,
   parseOrganization,
+  parseOrganizationUpdateTarget,
+  validateOrganizationName,
   parseOrganizationPage,
   parseOrganizationQuery,
   suggestOrganizationSlug,
@@ -320,4 +322,26 @@ test("archived records are accepted only for the explicit archived filter", asyn
       .kind,
     "success",
   );
+});
+
+test("organization edits validate names without requiring a mutable subdomain", () => {
+  assert.deepEqual(validateOrganizationName("Updated organization"), {});
+  assert.ok(validateOrganizationName("   ").name);
+  assert.ok(validateOrganizationName("x".repeat(161)).name);
+  assert.ok(validateOrganizationName("bad\u0000name").name);
+});
+
+test("organization edit targets require a UUID and exact optimistic concurrency timestamp", () => {
+  const target = { id, updatedAt: row.updatedAt };
+  assert.deepEqual(parseOrganizationUpdateTarget(target), target);
+  for (const value of [
+    null,
+    {},
+    { ...target, id: "../other" },
+    { ...target, approved: true },
+    { ...target, updatedAt: "2026-02-30T00:00:00.000Z" },
+    { ...target, updatedAt: "2026-01-01" },
+    { ...target, updatedAt: row.updatedAt + "\r\nInjected: true" },
+  ])
+    assert.equal(parseOrganizationUpdateTarget(value), null);
 });

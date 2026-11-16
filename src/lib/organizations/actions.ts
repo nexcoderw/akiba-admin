@@ -15,7 +15,7 @@ import {
   parseOrganizationUpdateTarget,
   validateOrganizationName,
   normalizeOrganizationName,
-  parseOrganization,
+  parseOrganizationSave,
   validateOrganizationRegistration,
 } from "@/lib/organizations/contracts";
 
@@ -109,6 +109,8 @@ export async function saveOrganizationAction(
         kind: "unauthenticated",
         message: messages.unauthenticated,
       };
+    if (session.kind === "denied")
+      return { ok: false, kind: "forbidden", message: messages.forbidden };
     if (session.kind !== "authenticated")
       return {
         ok: false,
@@ -190,20 +192,20 @@ export async function saveOrganizationAction(
       };
     }
 
-    const organization = parseOrganization(response.body);
-    if (
-      !organization ||
-      (target
-        ? organization.id !== target.id ||
-          organization.name !== normalizeOrganizationName(name)
-        : organization.status !== "PENDING")
-    )
+    const organization = parseOrganizationSave(
+      response.body,
+      target
+        ? { name, id: target.id, updatedAt: target.updatedAt }
+        : { name, slug },
+    );
+    if (!organization)
       return {
         ok: false,
         kind: "uncertain",
         message: messages.uncertain,
       };
     revalidatePath("/organizations");
+    revalidatePath(`/organizations/${organization.id}`);
     return { ok: true, organizationId: organization.id };
   } catch {
     return { ok: false, kind: "uncertain", message: messages.uncertain };

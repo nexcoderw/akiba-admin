@@ -1,3 +1,4 @@
+import { Button } from "@/components/shared/button";
 import { Dialog } from "@/components/shared/dialog";
 import { Icon } from "@/components/shared/icon";
 import type { Organization } from "@/lib/organizations/contracts";
@@ -10,10 +11,12 @@ export function OrganizationDetails({
   organization,
   returnFocus,
   onClose,
+  onEdit,
 }: {
   organization: Organization;
   returnFocus?: HTMLElement | null;
   onClose: () => void;
+  onEdit?: () => void;
 }) {
   const timeline = [
     ["Registered", organization.createdAt],
@@ -32,6 +35,13 @@ export function OrganizationDetails({
       }
       returnFocus={returnFocus}
       onClose={onClose}
+      footer={
+        onEdit ? (
+          <Button icon={<Icon name="text" />} onClick={onEdit}>
+            Edit organization
+          </Button>
+        ) : undefined
+      }
     >
       <div className={styles.details}>
         <section className={styles.section}>

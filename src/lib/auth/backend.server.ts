@@ -97,13 +97,33 @@ export async function backendCreateOrganizationRequest(
   );
 }
 
+/** Name-only update; the API enforces permission, lifecycle and optimistic concurrency. */
+export async function backendUpdateOrganizationRequest(
+  cookie: string,
+  id: string,
+  body: { name: string },
+  csrf: string,
+  updatedAt: string,
+) {
+  return requestBackend(
+    organizationApiPath({ kind: "detail", id }),
+    cookie,
+    "PATCH",
+    body,
+    csrf,
+    32768,
+    `"${updatedAt}"`,
+  );
+}
+
 async function requestBackend(
   path: string,
   cookie: string,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "PATCH",
   body?: unknown,
   csrf?: string,
   maximum = 32768,
+  ifMatch?: string,
 ) {
   const config = getAuthConfig();
   const incoming = platformCookies(cookie, config.secure);
@@ -113,6 +133,7 @@ async function requestBackend(
   });
   if (incoming.header) headers.set("Cookie", incoming.header);
   if (body !== undefined) headers.set("Content-Type", "application/json");
+  if (ifMatch) headers.set("If-Match", ifMatch);
   if (csrf) headers.set("x-platform-csrf-token", csrf);
   const response = await fetch(config.apiOrigin + path, {
     method,

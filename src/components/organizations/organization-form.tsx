@@ -30,6 +30,8 @@ export function OrganizationForm({
   onSaved: () => void;
 }) {
   const id = useId();
+  const [refreshRequired, setRefreshRequired] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const editing = organization !== undefined;
   const router = useRouter();
@@ -38,6 +40,11 @@ export function OrganizationForm({
   const [slug, setSlug] = useState(organization?.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(false);
   const [errors, setErrors] = useState<OrganizationRegistrationErrors>({});
+
+  function close() {
+    if (refreshRequired) onSaved();
+    else onClose();
+  }
 
   function focusFirstError() {
     window.requestAnimationFrame(() => {
@@ -50,6 +57,8 @@ export function OrganizationForm({
   }
 
   async function submit(data: FormData) {
+    if (refreshRequired) return;
+    setSaveError(null);
     const submittedName = String(data.get("name") ?? "");
     const submittedSlug = editing
       ? organization.slug
@@ -90,6 +99,9 @@ export function OrganizationForm({
       router.replace("/login?expired=1&next=%2Forganizations");
       return;
     }
+    setSaveError(result.message);
+    if (result.kind === "uncertain" || (editing && result.kind === "conflict"))
+      setRefreshRequired(true);
     setErrors(result.fieldErrors ?? {});
     if (result.fieldErrors) focusFirstError();
     if (result.kind === "uncertain")
@@ -107,16 +119,20 @@ export function OrganizationForm({
       }
       dismissible={!pending}
       returnFocus={returnFocus}
-      onClose={onClose}
+      onClose={close}
     >
       <Form
         className={styles.form}
         onSubmitAction={submit}
-        onErrorAction={() =>
+        onErrorAction={() => {
+          setRefreshRequired(true);
+          setSaveError(
+            "Refresh the directory to check the outcome before trying again.",
+          );
           toast.error(
             "We couldn't save the organization. Check its status before trying again.",
-          )
-        }
+          );
+        }}
         errorMessage="We couldn't confirm this save. Check the organization directory before trying again."
         noValidate
         aria-describedby={`${id}-help`}
@@ -178,17 +194,23 @@ export function OrganizationForm({
           />
         </div>
 
+        {saveError && (
+          <p className={styles.error} role="alert">
+            {saveError}
+          </p>
+        )}
         <div className={styles.actions}>
           <Button
             variant="secondary"
             icon={<Icon name="close" />}
             disabled={pending}
-            onClick={onClose}
+            onClick={close}
           >
-            Cancel
+            {refreshRequired ? "Close and refresh" : "Cancel"}
           </Button>
           <Button
             type="submit"
+            disabled={refreshRequired}
             icon={<Icon name="building" />}
             loadingLabel={
               editing ? "Saving organization…" : "Registering organization…"

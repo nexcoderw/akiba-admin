@@ -1,5 +1,9 @@
 import "server-only";
 
+import {
+  invitationRequest,
+  type InvitationCommand,
+} from "../organizations/owner-invitations";
 import { suspensionRequest } from "../organizations/lifecycle";
 import { AUTH_PATHS, ENROLLMENT_PATHS, type AuthOperation } from "./contracts";
 import { approvedSetCookies, authConfig, platformCookies } from "./policy";
@@ -131,6 +135,23 @@ export async function backendSuspendOrganizationRequest(
     request.method,
     request.body,
     csrf,
+  );
+}
+
+/** Fixed organization-scoped owner-invitation operations; no browser-selected upstream URLs. */
+export async function backendOwnerInvitationRequest(
+  cookie: string,
+  command: InvitationCommand,
+  csrf: string,
+) {
+  const request = invitationRequest(command);
+  return requestBackend(
+    request.path,
+    cookie,
+    request.method,
+    request.body,
+    csrf,
+    131072,
   );
 }
 

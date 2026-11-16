@@ -1,0 +1,72 @@
+/* Columns follow the space the registry actually has, so the sidebar is accounted for. */
+.registry {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+  container-type: inline-size;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+}
+.summary {
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+  color: var(--ui-muted);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+}
+/* Search and filter sit at the end; an opening search grows leftwards into the free space. */
+.tools {
+  display: flex;
+  flex: 1 1 18rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity var(--motion-fast) var(--motion-ease);
+}
+.item {
+  min-inline-size: 0;
+}
+.registry[aria-busy="true"] .grid {
+  opacity: 0.6;
+}
+.empty {
+  border: 1px dashed var(--ui-border);
+  border-radius: var(--radius-panel);
+  background: var(--ui-surface);
+}
+@container (min-width: 30rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (min-width: 44rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container (min-width: 52rem) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* Five per row from about a 1232px window (15rem sidebar included); capped at five on wider
+   screens. Narrow five-column cards switch to their compact layout. */
+@container (min-width: 58rem) {
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

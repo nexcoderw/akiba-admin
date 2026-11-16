@@ -2,12 +2,13 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/shared/button";
 import { Icon } from "@/components/shared/icon";
 import type { SafeProblem } from "@/lib/auth/contracts";
-import styles from "./organization-error.module.css";
+import styles from "./organization-problem.module.css";
 
-export function OrganizationError({ problem }: { problem: SafeProblem }) {
+export function OrganizationProblem({ problem }: { problem: SafeProblem }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const retryable = ![400, 403, 404].includes(problem.status);
@@ -39,6 +40,9 @@ export function OrganizationError({ problem }: { problem: SafeProblem }) {
           Try again
         </Button>
       )}
+      <Link href="/organizations" prefetch={false}>
+        Back to organizations
+      </Link>
     </section>
   );
 }

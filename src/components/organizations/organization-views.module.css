@@ -257,28 +257,6 @@
   font-size: var(--text-caption);
   font-weight: var(--weight-regular);
 }
-.loading {
-  display: grid;
-  gap: 1.25rem;
-  padding: 2rem;
-  border: 1px solid var(--ui-divider);
-  border-radius: var(--radius-panel);
-}
-.loading p {
-  margin: 0;
-  color: var(--ui-muted);
-}
-.skeleton {
-  block-size: 3.5rem;
-  border-radius: var(--ui-radius);
-  background: var(--ui-subtle);
-  animation: breathe 1.5s ease-in-out infinite alternate;
-}
-@keyframes breathe {
-  to {
-    opacity: 0.4;
-  }
-}
 @media (max-width: 65rem) {
   .filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -297,21 +275,12 @@
     margin-inline-start: 0;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
-}
 @media (forced-colors: active) {
   .status,
   .tableRegion,
   .filters,
   .detailCard,
-  .empty,
-  .loading {
+  .empty {
     border-color: CanvasText;
-  }
-  .skeleton {
-    border: 1px solid CanvasText;
   }
 }

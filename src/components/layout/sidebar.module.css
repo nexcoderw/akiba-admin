@@ -1,11 +1,23 @@
-/* ---------- Floating panel ---------- */
+/* ---------- Centering frame ---------- */
+/* A full-height sticky column. The panel sits in its vertical center and stays
+   there however many links are added; it only scrolls if it outgrows the column. */
 .sidebar {
   position: sticky;
-  inset-block-start: 5.5rem;
+  inset-block-start: 4.5rem;
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  block-size: calc(100dvh - 4.5rem);
+  padding: 1rem 0 1rem 1rem;
+  pointer-events: none;
+}
+
+/* ---------- Floating panel ---------- */
+.panel {
+  position: relative;
   isolation: isolate;
-  max-block-size: calc(100dvh - 7rem);
-  margin: 1rem 0 1rem 1rem;
+  max-block-size: 100%;
   padding: 1.25rem 0.875rem 1rem;
   overflow-x: hidden;
   overflow-y: auto;
@@ -16,13 +28,14 @@
     inset 0 1px 0 rgb(255 255 255 / 8%),
     0 24px 48px -18px rgb(37 6 85 / 45%),
     0 2px 6px rgb(37 6 85 / 12%);
+  pointer-events: auto;
   scrollbar-width: thin;
   scrollbar-color: rgb(255 255 255 / 20%) transparent;
   animation: panel-in 500ms var(--motion-ease) both;
 }
 
 /* Soft brand glow in the corner for depth. */
-.sidebar::before {
+.panel::before {
   content: "";
   position: absolute;
   inset-block-start: -4rem;
@@ -202,15 +215,15 @@
 
 /* ---------- Mobile drawer ---------- */
 @media (max-width: 52rem) {
+  /* The frame slides in; the panel stays centered inside it. */
   .sidebar {
     position: fixed;
     z-index: calc(var(--layer-dropdown) + 1);
-    inset-block: 5.25rem 0.75rem;
-    inset-inline-start: 0.75rem;
-    inline-size: min(18rem, calc(100vw - 1.5rem));
-    max-block-size: none;
-    margin: 0;
-    animation: none;
+    inset-block: 4.5rem 0;
+    inset-inline-start: 0;
+    inline-size: min(19.5rem, 100vw);
+    block-size: auto;
+    padding: 0.75rem;
     opacity: 0;
     transform: translateX(-110%);
     visibility: hidden;
@@ -226,6 +239,10 @@
     visibility: visible;
   }
 
+  .panel {
+    animation: none;
+  }
+
   /* Items stagger in each time the drawer opens. */
   .item {
     animation: none;
@@ -238,7 +255,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar,
+  .panel,
   .item,
   .sidebar[data-open] .item {
     animation: none;
@@ -260,12 +277,12 @@
 
 /* Windows High Contrast: colors, glow and shadows are overridden by the system. */
 @media (forced-colors: active) {
-  .sidebar {
+  .panel {
     border-color: CanvasText;
     background: Canvas;
   }
 
-  .sidebar::before,
+  .panel::before,
   .indicator {
     display: none;
   }

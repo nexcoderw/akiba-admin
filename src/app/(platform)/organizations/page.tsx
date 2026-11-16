@@ -3,11 +3,13 @@ import { OrganizationLoading } from "@/components/organizations/organization-vie
 import { OrganizationList } from "@/components/organizations/organization-list";
 import { OrganizationProblem } from "@/components/organizations/organization-problem";
 import {
+  ORGANIZATIONS_CREATE,
   organizationProblem,
   parseOrganizationQuery,
   type SearchParams,
 } from "@/lib/organizations/contracts";
 import { listOrganizations } from "@/lib/organizations/organizations.server";
+import { getSession } from "@/lib/auth/session.server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Organizations · Akiba" };
@@ -19,10 +21,22 @@ async function OrganizationRegistry({
 }) {
   const query = parseOrganizationQuery(await searchParams);
   if (!query) return <OrganizationProblem problem={organizationProblem(400)} />;
-  const result = await listOrganizations(query);
+  const [result, session] = await Promise.all([
+    listOrganizations(query),
+    getSession(),
+  ]);
   if (result.kind === "error")
     return <OrganizationProblem problem={result.problem} />;
-  return <OrganizationList data={result.data} query={query} />;
+  return (
+    <OrganizationList
+      data={result.data}
+      query={query}
+      canCreate={
+        session.kind === "authenticated" &&
+        session.session.permissions.includes(ORGANIZATIONS_CREATE)
+      }
+    />
+  );
 }
 
 export default function OrganizationsPage({

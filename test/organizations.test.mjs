@@ -10,6 +10,8 @@ import {
   parseOrganization,
   parseOrganizationPage,
   parseOrganizationQuery,
+  suggestOrganizationSlug,
+  validateOrganizationRegistration,
   validOrganizationId,
 } from "../src/lib/organizations/contracts.ts";
 import {
@@ -30,6 +32,38 @@ const row = {
   suspendedAt: null,
   archivedAt: null,
 };
+
+test("organization registration validates the verified name and slug DTO contract", () => {
+  assert.deepEqual(
+    validateOrganizationRegistration("Musomesa Ltd", "musomesa"),
+    {},
+  );
+  assert.equal(
+    validateOrganizationRegistration("  ", "musomesa").name,
+    "Enter a valid organization name (up to 160 characters).",
+  );
+  assert.ok(validateOrganizationRegistration("x".repeat(161), "musomesa").name);
+  for (const slug of [
+    "Mu-somesa",
+    "mu--somesa",
+    "-musomesa",
+    "musomesa-",
+    "mu.somesa",
+    "mu",
+  ]) {
+    assert.ok(validateOrganizationRegistration("Musomesa Ltd", slug).slug);
+  }
+  assert.deepEqual(
+    validateOrganizationRegistration("Valid Name", "valid-name"),
+    {},
+  );
+});
+
+test("organization slug suggestions are ASCII, lowercase and do not rewrite user input", () => {
+  assert.equal(suggestOrganizationSlug("Musomesa Ltd"), "musomesa-ltd");
+  assert.equal(suggestOrganizationSlug("École № 4"), "ecole-no-4");
+  assert.equal(suggestOrganizationSlug("東京"), "");
+});
 
 test("organization DTO accepts every actual lifecycle status and strips unrelated fields", () => {
   for (const status of organizationStatuses) {

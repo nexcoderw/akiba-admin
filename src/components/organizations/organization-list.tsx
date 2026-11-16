@@ -23,9 +23,11 @@ import styles from "./organization-list.module.css";
 export function OrganizationList({
   data,
   query,
+  canCreate,
 }: {
   data: OrganizationPage;
   query: OrganizationQuery;
+  canCreate: boolean;
 }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
@@ -90,6 +92,16 @@ export function OrganizationList({
       <PageHeader
         title="Organizations"
         description="Review organization registry records and platform lifecycle statuses."
+        actions={
+          canCreate ? (
+            <Button
+              icon={<Icon name="building" />}
+              onClick={() => router.push("/organizations/new")}
+            >
+              Register organization
+            </Button>
+          ) : undefined
+        }
       />
       <section
         className={styles.registry}

@@ -1,0 +1,49 @@
+.shell {
+  min-block-size: 100dvh;
+  background: var(--ui-subtle);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  min-block-size: calc(100dvh - 4.5rem);
+}
+
+.content {
+  min-inline-size: 0;
+  padding: clamp(1.25rem, 3vw, 3rem);
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 52rem) {
+  .body {
+    display: block;
+  }
+
+  .content {
+    padding: clamp(1rem, 4vw, 2rem);
+  }
+
+  .backdrop {
+    position: fixed;
+    z-index: var(--layer-dropdown);
+    inset-block: 4.5rem 0;
+    inset-inline: 0;
+    display: block;
+    inline-size: 100%;
+    border: 0;
+    background: color-mix(in srgb, var(--brand-900) 24%, transparent);
+    cursor: default;
+  }
+}
+
+@media (forced-colors: active) {
+  .backdrop {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    opacity: 0.75;
+  }
+}

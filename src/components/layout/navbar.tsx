@@ -72,26 +72,34 @@ export function Navbar({
             akiba<span className={styles.brandDot}>.</span>
           </span>
         </Link>
+        <div className={styles.workspace}>
+          <span className={styles.workspaceLabel}>Platform</span>
+          <span className={styles.workspaceName}>Administration</span>
+        </div>
       </div>
 
       <div className={styles.account}>
         <div className={styles.user}>
           <span className={styles.avatar} aria-hidden="true">
             {initials(displayName)}
-            <span className={styles.status} />
           </span>
           <span className={styles.userCopy}>
+            <span className={styles.accountLabel}>Signed in as</span>
             <span className={styles.displayName} title={displayName}>
               {displayName}
             </span>
-            <span className={styles.email}>{email}</span>
+            <span className={styles.email} title={email}>
+              {email}
+            </span>
           </span>
         </div>
-        <LogoutButton
-          label="Sign out"
-          icon={<Icon name="logout" />}
-          size="sm"
-        />
+        <div className={styles.signOut}>
+          <LogoutButton
+            label="Sign out"
+            icon={<Icon name="logout" />}
+            size="sm"
+          />
+        </div>
       </div>
     </header>
   );

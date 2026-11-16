@@ -47,11 +47,20 @@ Verified backend contracts:
 - Statuses: `PENDING`, `ACTIVE`, `SUSPENDED`, `ARCHIVED`. The default list excludes
   archived records. Select Archived explicitly to inspect them.
 
-Filters use Next Form navigation and reset pagination. The URL retains status,
-page size, current cursor and up to 20 previous cursor breadcrumbs. Next/Previous
-and detail back links preserve that state; First page always restarts the current
-filter. The API validates cursors against the selected status. If a cursor becomes
-unavailable, restart from the first page. Dates display explicitly in UTC.
+The directory follows the gym-admin reference's `OrganizationList`, `OrganizationCard`,
+`OrganizationSearch`, `OrganizationStatusFilter`, `OrganizationStatusBadge`,
+`OrganizationDetails`, `OrganizationProblem`, `PageHeader` and `Pagination` component
+structure. Responsive cards, a compact expanding search, a status popover and numbered
+pagination replace the table. Each styled component owns its matching CSS Module.
+
+Status changes reset pagination. The URL retains status, page size, current cursor
+and up to 20 prior cursor breadcrumbs. Numbered pages refer only to visited pages
+and the server-confirmed next page; no total is invented. Forward navigation stops
+at the breadcrumb limit, as in the reference. Changing status or returning to page 1
+restarts the history. An unavailable cursor requires a restart from page 1.
+Cards open read-only `OrganizationDetails` dialogs using the authenticated registry
+snapshot. The existing `/organizations/[id]` route still reads the detail endpoint.
+Dialog dates and card dates use Kigali time (UTC+2); the direct detail route labels UTC.
 
 Organization data is server-rendered behind the protected layout and is not stored
 in shared caches or browser storage. The router owns navigation responses, so no
@@ -60,9 +69,10 @@ to sign-in; 403 displays access denied; 404 displays unavailable information;
 network and service failures display a retryable local error. No mutations or
 additional CSRF protocol are introduced by these GET reads.
 
-**Search is blocked by the current API:** it accepts no search parameter and returns
-no total count. The directory therefore offers status filtering and the current
-page count. It does not filter a single page and present it as a complete search.
+**Global search is blocked by the current API:** it accepts no search parameter and
+returns no total count. Matching the reference, `OrganizationSearch` filters only
+records already loaded on the current page. Its accessible label and result summary
+explicitly identify that scope. This does not implement a server-wide search.
 Contact details, approval actors, owner enrollment and public hostname readiness
 are not returned by this API and are not fabricated. Registration and lifecycle
 actions remain out of scope.

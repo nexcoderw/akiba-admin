@@ -1,3 +1,5 @@
+import { OrganizationOwnerInvitations } from "./organization-owner-invitations";
+import { OWNER_PERMISSIONS } from "@/lib/organizations/owner-invitations";
 import Link from "next/link";
 import { StatePanel } from "@/components/shared/state-panel";
 import {
@@ -52,7 +54,11 @@ export async function OrganizationDetailView({
   const permissions =
     session.kind === "authenticated"
       ? session.session.permissions.filter((permission) =>
-          [ORGANIZATIONS_ACTIVATE, ORGANIZATIONS_SUSPEND].includes(permission),
+          [
+            ORGANIZATIONS_ACTIVATE,
+            ORGANIZATIONS_SUSPEND,
+            ...Object.values(OWNER_PERMISSIONS),
+          ].includes(permission),
         )
       : [];
   const back = organizationReturnHref(search.from);
@@ -85,6 +91,11 @@ export async function OrganizationDetailView({
             <OrganizationStatusBadge status={result.data.status} />
           </header>
           <OrganizationLifecycle
+            organization={result.data}
+            permissions={permissions}
+          />
+          <OrganizationOwnerInvitations
+            key={result.data.id}
             organization={result.data}
             permissions={permissions}
           />

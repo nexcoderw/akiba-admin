@@ -30,6 +30,51 @@ Start the frontend separately when needed:
 npm run dev
 ```
 
+## Organization directory
+
+`/organizations` lists real platform-managed organizations; `/organizations/[id]`
+shows their details. Both use the existing platform session and require
+`platform.organizations.read`. The server adapter reuses the authenticated transport,
+configured API origin, platform-only cookie allowlist, response limits, timeouts,
+and no-store reads. Backend authorization remains mandatory on every request.
+
+Verified backend contracts:
+
+- `GET /api/v1/platform/organizations`: `limit` (default 20, maximum 50), optional
+  `status` and UUID `cursor`; returns `{ items, nextCursor }`.
+- `GET /api/v1/platform/organizations/:id`: returns `id`, `name`, `slug`, `status`,
+  `createdAt`, `updatedAt`, `activatedAt`, `suspendedAt`, and `archivedAt`.
+- Statuses: `PENDING`, `ACTIVE`, `SUSPENDED`, `ARCHIVED`. The default list excludes
+  archived records. Select Archived explicitly to inspect them.
+
+Filters use Next Form navigation and reset pagination. The URL retains status,
+page size, current cursor and up to 20 previous cursor breadcrumbs. Next/Previous
+and detail back links preserve that state; First page always restarts the current
+filter. The API validates cursors against the selected status. If a cursor becomes
+unavailable, restart from the first page. Dates display explicitly in UTC.
+
+Organization data is server-rendered behind the protected layout and is not stored
+in shared caches or browser storage. The router owns navigation responses, so no
+client request effects can overwrite newer navigation. A confirmed 401 redirects
+to sign-in; 403 displays access denied; 404 displays unavailable information;
+network and service failures display a retryable local error. No mutations or
+additional CSRF protocol are introduced by these GET reads.
+
+**Search is blocked by the current API:** it accepts no search parameter and returns
+no total count. The directory therefore offers status filtering and the current
+page count. It does not filter a single page and present it as a complete search.
+Contact details, approval actors, owner enrollment and public hostname readiness
+are not returned by this API and are not fabricated. Registration and lifecycle
+actions remain out of scope.
+
+`test/organizations.test.mjs` covers DTO validation, safe errors, cursor navigation,
+return-link restrictions and permission-aware read behavior with isolated synthetic
+fixtures. These tests do not establish live API authorization or browser behavior.
+Run the verification sequence above, then check live listing/detail navigation,
+filter reset, browser back/forward, session expiration, 403 handling, keyboard use,
+slow loading and narrow/zoomed layouts. Browser/component tests and live backend
+integration have not been executed by the agent.
+
 ## Platform authentication
 
 ### UI icons

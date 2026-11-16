@@ -25,12 +25,18 @@ export function Sidebar({
 
     function place() {
       const active = track?.querySelector<HTMLElement>("[data-active]");
+      const item = active?.closest("li");
       if (!track) return;
-      if (!active) {
+      if (!active || !item) {
         track.removeAttribute("data-has-active");
         return;
       }
-      track.style.setProperty("--indicator-y", `${active.offsetTop}px`);
+      // Each positioned row is the link's offset parent. Its own offset is
+      // relative to the track and stays stable during the entrance animation.
+      track.style.setProperty(
+        "--indicator-y",
+        `${item.offsetTop + active.offsetTop}px`,
+      );
       track.style.setProperty("--indicator-h", `${active.offsetHeight}px`);
       track.setAttribute("data-has-active", "");
     }

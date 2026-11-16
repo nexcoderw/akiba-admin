@@ -1,3 +1,4 @@
+import { OWNER_PERMISSIONS } from "@/lib/organizations/owner-invitations";
 import { Suspense } from "react";
 import { OrganizationLoading } from "@/components/organizations/organization-views";
 import { OrganizationList } from "@/components/organizations/organization-list";
@@ -39,9 +40,11 @@ async function OrganizationRegistry({
       lifecyclePermissions={
         session.kind === "authenticated"
           ? session.session.permissions.filter((permission) =>
-              [ORGANIZATIONS_ACTIVATE, ORGANIZATIONS_SUSPEND].includes(
-                permission,
-              ),
+              [
+                ORGANIZATIONS_ACTIVATE,
+                ORGANIZATIONS_SUSPEND,
+                ...Object.values(OWNER_PERMISSIONS),
+              ].includes(permission),
             )
           : []
       }

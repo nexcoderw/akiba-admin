@@ -3,6 +3,7 @@
 import {
   Alert02Icon,
   AlertCircleIcon,
+  ArrowLeft01Icon,
   ArrowDown01Icon,
   ArrowRight01Icon,
   Building02Icon,
@@ -10,11 +11,14 @@ import {
   CreditCardIcon,
   DashboardSquare01Icon,
   InformationCircleIcon,
+  FilterIcon,
+  Link01Icon,
   LockPasswordIcon,
   Login03Icon,
   Logout01Icon,
   Mail01Icon,
   Menu01Icon,
+  Search01Icon,
   TextAlignLeftIcon,
   Tick02Icon,
   UserIcon,
@@ -30,6 +34,7 @@ import {
 import styles from "./icon.module.css";
 
 export type IconName =
+  | "arrow-left"
   | "arrow-right"
   | "building"
   | "check"
@@ -41,6 +46,9 @@ export type IconName =
   | "eye-off"
   | "error"
   | "info"
+  | "filter"
+  | "link"
+  | "search"
   | "list"
   | "login"
   | "lock"
@@ -55,6 +63,7 @@ export type IconName =
   | "warning";
 
 const icons: Record<IconName, IconSvgElement> = {
+  "arrow-left": ArrowLeft01Icon,
   "arrow-right": ArrowRight01Icon,
   building: Building02Icon,
   check: Tick02Icon,
@@ -66,6 +75,9 @@ const icons: Record<IconName, IconSvgElement> = {
   "eye-off": ViewOffSlashIcon,
   error: AlertCircleIcon,
   info: InformationCircleIcon,
+  filter: FilterIcon,
+  link: Link01Icon,
+  search: Search01Icon,
   list: Menu01Icon,
   login: Login03Icon,
   lock: LockPasswordIcon,

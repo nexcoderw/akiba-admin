@@ -16,8 +16,10 @@ export function OrganizationLifecycle({
   permissions,
   onRefresh,
   onInteractionChange,
+  disabled = false,
 }: {
   organization: Organization;
+  disabled?: boolean;
   permissions: string[];
   onRefresh?: () => void;
   onInteractionChange?: (open: boolean) => void;
@@ -84,7 +86,7 @@ export function OrganizationLifecycle({
         <Button
           variant="danger"
           icon={<Icon name="lock" />}
-          disabled={pending}
+          disabled={pending || disabled}
           onClick={(event) => {
             setError(null);
             setTrigger(event.currentTarget);
@@ -116,7 +118,7 @@ export function OrganizationLifecycle({
               <Button
                 variant="secondary"
                 icon={<Icon name="close" />}
-                disabled={pending}
+                disabled={pending || disabled}
                 onClick={close}
                 data-autofocus
               >

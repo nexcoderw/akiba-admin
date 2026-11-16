@@ -11,7 +11,7 @@ export function LogoutButton({
   disabled,
   fullWidth = false,
   icon,
-  size = "md",
+  size,
 }: {
   label?: string;
   disabled?: boolean;
@@ -24,9 +24,9 @@ export function LogoutButton({
     <div className={styles.action} data-full-width={fullWidth || undefined}>
       <Button
         variant="secondary"
-        size={size}
         disabled={disabled}
         fullWidth={fullWidth}
+        size={size}
         loadingLabel="Signing out…"
         icon={icon ?? <Icon name="arrow-right" />}
         onClick={async () => {

@@ -1,0 +1,42 @@
+.lifecycle,
+.confirmation {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+.lifecycle:empty {
+  display: none;
+}
+.lifecycle > button {
+  justify-self: start;
+}
+.note {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--ui-radius);
+  background: var(--ui-subtle);
+  color: var(--ui-muted);
+  font-size: var(--text-small);
+  line-height: 1.7;
+}
+.confirmation p {
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+.error {
+  padding: var(--space-3);
+  border: 1px solid currentColor;
+  border-radius: var(--ui-radius);
+  color: var(--ui-danger);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+@media (max-width: 30rem) {
+  .actions > * {
+    flex: 1 1 100%;
+  }
+}

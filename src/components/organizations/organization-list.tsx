@@ -27,11 +27,13 @@ export function OrganizationList({
   query,
   canCreate,
   canEdit,
+  lifecyclePermissions,
 }: {
   data: OrganizationPage;
   query: OrganizationQuery;
   canCreate: boolean;
   canEdit: boolean;
+  lifecyclePermissions: string[];
 }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
@@ -244,6 +246,11 @@ export function OrganizationList({
         <OrganizationDetails
           organization={dialog.organization}
           returnFocus={dialog.trigger}
+          permissions={lifecyclePermissions}
+          onRefresh={() => {
+            setDialog(null);
+            startRefresh(() => router.refresh());
+          }}
           onClose={() => setDialog(null)}
           onEdit={
             canEdit && dialog.organization.status !== "ARCHIVED"

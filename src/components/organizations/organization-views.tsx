@@ -3,22 +3,19 @@ import { StatePanel } from "@/components/shared/state-panel";
 import {
   organizationProblem,
   organizationReturnHref,
-  statusLabels,
   validOrganizationId,
-  type OrganizationStatus,
   type SearchParams,
 } from "@/lib/organizations/contracts";
+import { getSession } from "@/lib/auth/session.server";
+import {
+  ORGANIZATIONS_ACTIVATE,
+  ORGANIZATIONS_SUSPEND,
+} from "@/lib/organizations/lifecycle";
+import { OrganizationLifecycle } from "./organization-lifecycle";
+import { OrganizationStatusBadge } from "./organization-status-badge";
 import { getOrganization } from "@/lib/organizations/organizations.server";
 import { OrganizationProblem } from "./organization-problem";
 import styles from "./organization-views.module.css";
-
-function Status({ value }: { value: OrganizationStatus }) {
-  return (
-    <span className={styles.status} data-status={value}>
-      {statusLabels[value]}
-    </span>
-  );
-}
 
 function DateValue({ value }: { value: string | null }) {
   if (!value) return <>Not recorded</>;
@@ -51,6 +48,13 @@ export async function OrganizationDetailView({
   searchParams: Promise<SearchParams>;
 }) {
   const [{ id }, search] = await Promise.all([params, searchParams]);
+  const session = await getSession();
+  const permissions =
+    session.kind === "authenticated"
+      ? session.session.permissions.filter((permission) =>
+          [ORGANIZATIONS_ACTIVATE, ORGANIZATIONS_SUSPEND].includes(permission),
+        )
+      : [];
   const back = organizationReturnHref(search.from);
   const result = validOrganizationId(id)
     ? await getOrganization(id)
@@ -78,8 +82,12 @@ export async function OrganizationDetailView({
                 Organization identity and lifecycle information.
               </p>
             </div>
-            <Status value={result.data.status} />
+            <OrganizationStatusBadge status={result.data.status} />
           </header>
+          <OrganizationLifecycle
+            organization={result.data}
+            permissions={permissions}
+          />
           <div className={styles.detailCard}>
             <h2>Organization overview</h2>
             <dl className={styles.details}>
@@ -94,7 +102,7 @@ export async function OrganizationDetailView({
               <div>
                 <dt>Status</dt>
                 <dd>
-                  <Status value={result.data.status} />
+                  <OrganizationStatusBadge status={result.data.status} />
                 </dd>
               </div>
               <div>

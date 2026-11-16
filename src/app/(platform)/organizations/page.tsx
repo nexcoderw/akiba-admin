@@ -10,6 +10,10 @@ import {
   type SearchParams,
 } from "@/lib/organizations/contracts";
 import { listOrganizations } from "@/lib/organizations/organizations.server";
+import {
+  ORGANIZATIONS_ACTIVATE,
+  ORGANIZATIONS_SUSPEND,
+} from "@/lib/organizations/lifecycle";
 import { getSession } from "@/lib/auth/session.server";
 import type { Metadata } from "next";
 
@@ -32,6 +36,15 @@ async function OrganizationRegistry({
     <OrganizationList
       data={result.data}
       query={query}
+      lifecyclePermissions={
+        session.kind === "authenticated"
+          ? session.session.permissions.filter((permission) =>
+              [ORGANIZATIONS_ACTIVATE, ORGANIZATIONS_SUSPEND].includes(
+                permission,
+              ),
+            )
+          : []
+      }
       canEdit={
         session.kind === "authenticated" &&
         session.session.permissions.includes(ORGANIZATIONS_UPDATE)

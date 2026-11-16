@@ -102,6 +102,32 @@ export function validateOrganizationRegistration(
   return errors;
 }
 
+/** A successful response must describe the exact requested save. */
+export function parseOrganizationSave(
+  body: unknown,
+  expected: { name: string; slug?: string; id?: string; updatedAt?: string },
+): Organization | null {
+  const organization = parseOrganization(body);
+  if (
+    !organization ||
+    organization.name !== normalizeOrganizationName(expected.name)
+  )
+    return null;
+  if (expected.id !== undefined) {
+    if (
+      organization.id !== expected.id ||
+      !expected.updatedAt ||
+      Date.parse(organization.updatedAt) <= Date.parse(expected.updatedAt)
+    )
+      return null;
+  } else if (
+    organization.status !== "PENDING" ||
+    organization.slug !== expected.slug
+  )
+    return null;
+  return organization;
+}
+
 export function suggestOrganizationSlug(name: string): string {
   const slug = name
     .normalize("NFKD")

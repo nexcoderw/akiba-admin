@@ -1,5 +1,6 @@
 import "server-only";
 
+import { suspensionRequest } from "../organizations/lifecycle";
 import { AUTH_PATHS, ENROLLMENT_PATHS, type AuthOperation } from "./contracts";
 import { approvedSetCookies, authConfig, platformCookies } from "./policy";
 import {
@@ -113,6 +114,23 @@ export async function backendUpdateOrganizationRequest(
     csrf,
     32768,
     `"${updatedAt}"`,
+  );
+}
+
+/** The API accepts only expectedUpdatedAt for this lifecycle operation. */
+export async function backendSuspendOrganizationRequest(
+  cookie: string,
+  id: string,
+  expectedUpdatedAt: string,
+  csrf: string,
+) {
+  const request = suspensionRequest({ id, updatedAt: expectedUpdatedAt });
+  return requestBackend(
+    request.path,
+    cookie,
+    request.method,
+    request.body,
+    csrf,
   );
 }
 

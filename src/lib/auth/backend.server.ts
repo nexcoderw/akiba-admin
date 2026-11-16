@@ -82,6 +82,21 @@ export async function backendOrganizationRequest(
   );
 }
 
+/** Fixed authenticated mutation for the verified platform organization endpoint. */
+export async function backendCreateOrganizationRequest(
+  cookie: string,
+  body: { name: string; slug: string },
+  csrf: string,
+) {
+  return requestBackend(
+    "/api/v1/platform/organizations",
+    cookie,
+    "POST",
+    body,
+    csrf,
+  );
+}
+
 async function requestBackend(
   path: string,
   cookie: string,

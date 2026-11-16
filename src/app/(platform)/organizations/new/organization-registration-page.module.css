@@ -1,7 +1,0 @@
-.page {
-  display: grid;
-  align-content: start;
-  gap: var(--space-6);
-  min-inline-size: 0;
-  padding-block-end: var(--space-8);
-}

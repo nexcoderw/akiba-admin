@@ -375,3 +375,43 @@ The component implementation has not been browser-tested or built by the agent. 
 - Every control has a label, visible focus and useful disabled/error states at narrow widths, high zoom, with a dark operating-system preference (the application remains light) and with reduced motion.
 
 The shared components need no additional runtime dependencies. Prettier is a development-only formatter. The native authentication-policy tests supplement the manual checks above; API integration and server-side guarantees remain the responsibility of the consuming feature and canonical backend.
+
+## Organization lifecycle management
+
+Organization details in the directory and `/organizations/[id]` expose lifecycle controls
+using the authenticated platform session. Statuses remain `PENDING`, `ACTIVE`,
+`SUSPENDED`, and `ARCHIVED`; there is no frontend-only approved state.
+
+- Suspension requires both read access and `platform.organizations.suspend`, a live
+  `ACTIVE` record, and explicit confirmation. The UI warns that reactivation is currently
+  unavailable. Cancellation sends no mutation.
+- The server action checks the trusted admin Origin, readable CSRF cookie, live platform
+  session and permissions. It reads the selected record and checks the exact `updatedAt`
+  before calling `POST /api/v1/platform/organizations/:id/suspension` with only
+  `{ expectedUpdatedAt }`. The existing transport forwards only approved platform cookies
+  and the CSRF header, with timeouts, bounded responses, and no shared caching.
+- Success requires a matching `SUSPENDED` DTO with a new version and suspension timestamp.
+  The directory and detail route are revalidated. Directory filters and cursor state stay
+  in place; records that no longer match a filter may disappear from that view.
+- Conflict, rate-limit, and uncertain outcomes require refreshing authoritative data before
+  retrying. No lifecycle write is automatically retried. A 401 follows session expiration;
+  a 403 remains an access denial. Safe errors remain inline as well as in toasts.
+- Approval has no verified separate API endpoint. The existing activation endpoint requires
+  `platform.organizations.activate` but currently rejects valid pending/suspended activation
+  with 503 because approval/readiness and verified owner MFA evidence are unavailable.
+  Authorized users see an explanation; approval/reactivation writes are not exposed.
+  Archived records have no restoration action. No owner invitations are created here.
+
+Registration and name editing continue to share the organization form dialog. Success now
+requires the response to match the submitted name and slug (registration), or selected ID
+and advanced version (editing). Uncertain saves require a directory refresh before another
+attempt; validation and duplicate-subdomain errors preserve editable fields.
+
+Native Node tests in `test/organization-lifecycle.test.mjs` cover the lifecycle policy,
+request DTO, authorization gates, live-state checks, response validation, sanitization,
+conflicts, uncertain outcomes, and save-response regressions with injected services.
+These tests do not prove live API, database concurrency, or browser dialog behavior.
+Browser verification must cover Cancel/Escape, focus restoration, rapid clicks, expiration,
+filtered pagination, narrow layouts, and concurrent changes from two administrator tabs.
+The Step 4 milestone remains partially complete until backend approval/reactivation
+readiness support and runtime verification are available.

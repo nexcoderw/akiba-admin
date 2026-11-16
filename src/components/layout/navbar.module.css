@@ -1,3 +1,4 @@
+/* ---------- Bar ---------- */
 .navbar {
   position: sticky;
   z-index: calc(var(--layer-dropdown) + 2);
@@ -5,11 +6,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-block-size: 4.5rem;
+  min-block-size: 4.5rem; /* the sidebar offsets itself by this height */
   gap: 1rem;
   padding-inline: clamp(1rem, 3vw, 2rem);
   border-block-end: 1px solid var(--ui-divider);
   background: var(--ui-surface);
+  transition:
+    box-shadow 300ms var(--motion-ease),
+    border-color 300ms var(--motion-ease);
+  animation: bar-in 500ms var(--motion-ease) both;
+}
+
+/* Frosted glass where supported; the solid surface above is the fallback. */
+@supports (backdrop-filter: blur(1px)) {
+  .navbar {
+    background: rgb(255 255 255 / 80%);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+  }
+}
+
+/* Lifts off the page once content scrolls underneath. */
+.navbar[data-scrolled] {
+  border-block-end-color: transparent;
+  box-shadow:
+    0 1px 0 var(--ui-divider),
+    0 12px 28px -16px rgb(37 6 85 / 24%);
 }
 
 .identity,
@@ -28,7 +50,12 @@
   display: none;
 }
 
+/* ---------- Brand ---------- */
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--radius-pill);
   color: var(--ui-primary);
   font-size: 1.5rem;
   font-weight: var(--weight-bold);
@@ -37,38 +64,96 @@
   text-decoration: none;
 }
 
-.brand span {
+.brandMark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background: var(--ui-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--ui-on-primary);
+  font-size: 1.5rem;
+  letter-spacing: -0.06em;
+  transition: transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand:hover .brandMark {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+.brandDot {
   color: var(--brand-500);
 }
 
 .brand:focus-visible {
-  border-radius: 0.25rem;
   outline: 2px solid var(--ui-focus);
   outline-offset: 4px;
 }
 
+/* ---------- Account ---------- */
 .account {
   min-inline-size: 0;
-  gap: clamp(0.75rem, 2vw, 1.5rem);
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  animation: bar-in 500ms var(--motion-ease) 120ms both;
 }
 
+/* Pill holding avatar, name and email. */
 .user {
   min-inline-size: 0;
   gap: 0.75rem;
+  padding: 0.25rem 1.125rem 0.25rem 0.25rem;
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--radius-pill);
+  background: var(--ui-surface);
+  box-shadow: var(--shadow-panel);
+  transition:
+    border-color 250ms ease,
+    box-shadow 300ms var(--motion-ease);
+}
+
+.user:hover {
+  border-color: var(--brand-200);
+  box-shadow: 0 6px 18px -8px rgb(62 15 141 / 22%);
 }
 
 .avatar {
+  position: relative;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
   inline-size: 2.5rem;
   block-size: 2.5rem;
-  border: 1px solid var(--brand-200);
   border-radius: 50%;
-  background: var(--brand-50);
-  color: var(--ui-primary);
+  background: var(--ui-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--ui-on-primary);
   font-size: var(--text-small);
   font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+/* Small "active session" dot with a gentle pulse. */
+.status {
+  position: absolute;
+  inset-block-end: -1px;
+  inset-inline-end: -1px;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border: 2px solid var(--ui-surface);
+  border-radius: 50%;
+  background: var(--ui-success);
+}
+
+.status::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--ui-success);
+  opacity: 0;
+  animation: status-pulse 2.4s ease-out infinite;
 }
 
 .userCopy {
@@ -89,13 +174,39 @@
   color: var(--ui-text);
   font-size: var(--text-small);
   font-weight: var(--weight-semibold);
+  line-height: 1.3;
 }
 
 .email {
   color: var(--ui-muted);
   font-size: var(--text-caption);
+  line-height: 1.3;
 }
 
+/* ---------- Keyframes ---------- */
+@keyframes bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes status-pulse {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+/* ---------- Responsive ---------- */
 @media (max-width: 52rem) {
   .menuButton {
     display: inline-flex;
@@ -118,6 +229,7 @@
 
   .user {
     gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
   }
 
   .avatar {
@@ -131,16 +243,60 @@
   .displayName {
     max-inline-size: 4.5rem;
   }
+
+  /* Wordmark yields to the controls on very small screens; the mark stays. */
+  .brandText {
+    display: none;
+  }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .navbar,
+  .account,
+  .status::after {
+    animation: none;
+  }
+
+  .navbar,
+  .brandMark,
+  .user {
+    transition: none;
+  }
+
+  .brand:hover .brandMark {
+    transform: none;
+  }
+}
+
+/* Windows High Contrast: blur, shadows and tints are overridden by the system. */
 @media (forced-colors: active) {
   .navbar {
     border-block-end-color: CanvasText;
+    background: Canvas;
   }
 
-  .avatar {
+  .user {
     border-color: CanvasText;
+  }
+
+  .avatar,
+  .brandMark {
+    border: 1px solid CanvasText;
     background: Canvas;
+    box-shadow: none;
     color: CanvasText;
+  }
+
+  .status {
+    border-color: Canvas;
+    background: Highlight;
+  }
+
+  .status::after {
+    display: none;
+  }
+
+  .brand:focus-visible {
+    outline-color: Highlight;
   }
 }

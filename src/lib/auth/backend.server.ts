@@ -2,6 +2,10 @@ import "server-only";
 
 import { AUTH_PATHS, ENROLLMENT_PATHS, type AuthOperation } from "./contracts";
 import { approvedSetCookies, authConfig, platformCookies } from "./policy";
+import {
+  organizationApiPath,
+  type OrganizationTarget,
+} from "../organizations/contracts";
 
 export function getAuthConfig() {
   return authConfig(
@@ -55,6 +59,37 @@ export async function backendRequest(
   body?: unknown,
   csrf?: string,
 ) {
+  return requestBackend(
+    { ...AUTH_PATHS, ...ENROLLMENT_PATHS }[operation],
+    cookie,
+    operation === "session" ? "GET" : "POST",
+    body,
+    csrf,
+  );
+}
+
+export async function backendOrganizationRequest(
+  target: OrganizationTarget,
+  cookie: string,
+) {
+  return requestBackend(
+    organizationApiPath(target),
+    cookie,
+    "GET",
+    undefined,
+    undefined,
+    131072,
+  );
+}
+
+async function requestBackend(
+  path: string,
+  cookie: string,
+  method: "GET" | "POST",
+  body?: unknown,
+  csrf?: string,
+  maximum = 32768,
+) {
   const config = getAuthConfig();
   const incoming = platformCookies(cookie, config.secure);
   const headers = new Headers({
@@ -64,17 +99,14 @@ export async function backendRequest(
   if (incoming.header) headers.set("Cookie", incoming.header);
   if (body !== undefined) headers.set("Content-Type", "application/json");
   if (csrf) headers.set("x-platform-csrf-token", csrf);
-  const response = await fetch(
-    config.apiOrigin + { ...AUTH_PATHS, ...ENROLLMENT_PATHS }[operation],
-    {
-      method: operation === "session" ? "GET" : "POST",
-      headers,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      cache: "no-store",
-      redirect: "error",
-      signal: AbortSignal.timeout(25000),
-    },
-  );
+  const response = await fetch(config.apiOrigin + path, {
+    method,
+    headers,
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    cache: "no-store",
+    redirect: "error",
+    signal: AbortSignal.timeout(25000),
+  });
   const setCookies = approvedSetCookies(
     response.headers.getSetCookie(),
     config.secure,
@@ -92,7 +124,7 @@ export async function backendRequest(
     throw new Error("Unexpected response.");
   return {
     status: response.status,
-    body: await boundedJson(response),
+    body: await boundedJson(response, maximum),
     cookies: setCookies,
   };
 }

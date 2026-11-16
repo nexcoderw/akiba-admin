@@ -41,6 +41,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Generate Next.js route types
+        run: ./node_modules/.bin/next typegen
+
       - name: Type-check
         run: ./node_modules/.bin/tsc --noEmit
 

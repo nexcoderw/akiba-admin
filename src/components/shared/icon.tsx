@@ -27,6 +27,7 @@ import {
   UserGroupIcon,
   ViewIcon,
   ViewOffSlashIcon,
+  PencilIcon,
 } from "@hugeicons/core-free-icons";
 import {
   HugeiconsIcon,
@@ -64,6 +65,7 @@ export type IconName =
   | "audit"
   | "security"
   | "key"
+  | "pencil"
   | "warning";
 
 const icons: Record<IconName, IconSvgElement> = {
@@ -95,6 +97,7 @@ const icons: Record<IconName, IconSvgElement> = {
   audit: InformationCircleIcon,
   security: LockPasswordIcon,
   key: LockPasswordIcon,
+  pencil: PencilIcon,
   warning: Alert02Icon,
 };
 

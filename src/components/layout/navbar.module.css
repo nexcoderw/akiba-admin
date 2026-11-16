@@ -1,0 +1,146 @@
+.navbar {
+  position: sticky;
+  z-index: calc(var(--layer-dropdown) + 2);
+  inset-block-start: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-block-size: 4.5rem;
+  gap: 1rem;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+  border-block-end: 1px solid var(--ui-divider);
+  background: var(--ui-surface);
+}
+
+.identity,
+.account,
+.user {
+  display: flex;
+  align-items: center;
+}
+
+.identity {
+  min-inline-size: 0;
+  gap: 0.75rem;
+}
+
+.menuButton {
+  display: none;
+}
+
+.brand {
+  color: var(--ui-primary);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.055em;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.brand span {
+  color: var(--brand-500);
+}
+
+.brand:focus-visible {
+  border-radius: 0.25rem;
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 4px;
+}
+
+.account {
+  min-inline-size: 0;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.user {
+  min-inline-size: 0;
+  gap: 0.75rem;
+}
+
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border: 1px solid var(--brand-200);
+  border-radius: 50%;
+  background: var(--brand-50);
+  color: var(--ui-primary);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.userCopy {
+  display: grid;
+  min-inline-size: 0;
+  gap: 0.125rem;
+}
+
+.displayName,
+.email {
+  overflow: hidden;
+  max-inline-size: min(18rem, 26vw);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.displayName {
+  color: var(--ui-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.email {
+  color: var(--ui-muted);
+  font-size: var(--text-caption);
+}
+
+@media (max-width: 52rem) {
+  .menuButton {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 35rem) {
+  .navbar {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  .identity {
+    gap: 0.25rem;
+  }
+
+  .account {
+    gap: 0.5rem;
+  }
+
+  .user {
+    gap: 0.5rem;
+  }
+
+  .avatar {
+    display: none;
+  }
+
+  .email {
+    display: none;
+  }
+
+  .displayName {
+    max-inline-size: 4.5rem;
+  }
+}
+
+@media (forced-colors: active) {
+  .navbar {
+    border-block-end-color: CanvasText;
+  }
+
+  .avatar {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}

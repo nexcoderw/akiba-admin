@@ -61,7 +61,7 @@ test("organization registration validates the verified name and slug DTO contrac
 
 test("organization slug suggestions are ASCII, lowercase and do not rewrite user input", () => {
   assert.equal(suggestOrganizationSlug("Musomesa Ltd"), "musomesa-ltd");
-  assert.equal(suggestOrganizationSlug("École № 4"), "ecole-4");
+  assert.equal(suggestOrganizationSlug("École № 4"), "ecole-no-4");
   assert.equal(suggestOrganizationSlug("東京"), "");
 });
 

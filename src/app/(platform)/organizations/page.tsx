@@ -4,6 +4,7 @@ import { OrganizationList } from "@/components/organizations/organization-list";
 import { OrganizationProblem } from "@/components/organizations/organization-problem";
 import {
   ORGANIZATIONS_CREATE,
+  ORGANIZATIONS_UPDATE,
   organizationProblem,
   parseOrganizationQuery,
   type SearchParams,
@@ -31,6 +32,10 @@ async function OrganizationRegistry({
     <OrganizationList
       data={result.data}
       query={query}
+      canEdit={
+        session.kind === "authenticated" &&
+        session.session.permissions.includes(ORGANIZATIONS_UPDATE)
+      }
       canCreate={
         session.kind === "authenticated" &&
         session.session.permissions.includes(ORGANIZATIONS_CREATE)

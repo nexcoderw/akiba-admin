@@ -1,23 +1,32 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/shared/button";
 import { Dialog } from "@/components/shared/dialog";
 import { Icon } from "@/components/shared/icon";
 import type { Organization } from "@/lib/organizations/contracts";
 import { formatOrganizationDateTime } from "./organization-dates";
+import { OrganizationLifecycle } from "./organization-lifecycle";
 import { OrganizationStatusBadge } from "./organization-status-badge";
 import styles from "./organization-details.module.css";
 
-/** Keep the authenticated registry snapshot stable while this read-only dialog is open. */
+/** Lifecycle confirmation locks conflicting controls while retaining the directory snapshot. */
 export function OrganizationDetails({
   organization,
   returnFocus,
   onClose,
   onEdit,
+  permissions,
+  onRefresh,
 }: {
   organization: Organization;
   returnFocus?: HTMLElement | null;
   onClose: () => void;
   onEdit?: () => void;
+  permissions: string[];
+  onRefresh: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const timeline = [
     ["Registered", organization.createdAt],
     ["Last updated", organization.updatedAt],
@@ -35,9 +44,14 @@ export function OrganizationDetails({
       }
       returnFocus={returnFocus}
       onClose={onClose}
+      dismissible={!confirming}
       footer={
         onEdit ? (
-          <Button icon={<Icon name="text" />} onClick={onEdit}>
+          <Button
+            icon={<Icon name="text" />}
+            onClick={onEdit}
+            disabled={confirming}
+          >
             Edit organization
           </Button>
         ) : undefined
@@ -80,6 +94,12 @@ export function OrganizationDetails({
             )}
           </dl>
         </section>
+        <OrganizationLifecycle
+          organization={organization}
+          permissions={permissions}
+          onRefresh={onRefresh}
+          onInteractionChange={setConfirming}
+        />
       </div>
     </Dialog>
   );

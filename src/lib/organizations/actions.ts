@@ -5,17 +5,21 @@ import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth/session.server";
 import {
   backendCreateOrganizationRequest,
+  backendUpdateOrganizationRequest,
   getAuthConfig,
 } from "@/lib/auth/backend.server";
 import { browserOriginAllowed, platformCookies } from "@/lib/auth/policy";
 import {
   ORGANIZATIONS_CREATE,
+  ORGANIZATIONS_UPDATE,
+  parseOrganizationUpdateTarget,
+  validateOrganizationName,
   normalizeOrganizationName,
   parseOrganization,
   validateOrganizationRegistration,
 } from "@/lib/organizations/contracts";
 
-export type OrganizationRegistrationResult =
+export type OrganizationSaveResult =
   | { ok: true; organizationId: string }
   | {
       ok: false;
@@ -32,22 +36,33 @@ export type OrganizationRegistrationResult =
 
 const messages = {
   unauthenticated: "Your session has expired. Sign in again.",
-  forbidden: "You don't have permission to register organizations.",
+  forbidden: "You don't have permission to save this organization.",
   conflict: "This subdomain is already in use. Choose another.",
   uncertain:
-    "We couldn't confirm whether the organization was registered. Check the organization directory before trying again.",
+    "We couldn't confirm whether the organization was saved. Check the organization directory before trying again.",
   unavailable:
-    "We couldn't register the organization right now. Please try again later.",
+    "We couldn't save the organization right now. Please try again later.",
 };
 
-export async function registerOrganizationAction(
+export async function saveOrganizationAction(
   formData: FormData,
-): Promise<OrganizationRegistrationResult> {
+  requestedTarget?: unknown,
+): Promise<OrganizationSaveResult> {
   try {
+    const target =
+      requestedTarget === undefined
+        ? undefined
+        : parseOrganizationUpdateTarget(requestedTarget);
+    if (target === null)
+      return {
+        ok: false,
+        kind: "validation",
+        message: "Refresh the directory and reopen the organization.",
+      };
     const values: Record<string, string> = {};
     for (const [key, value] of formData.entries()) {
       if (
-        (key !== "name" && key !== "slug") ||
+        (key !== "name" && (target !== undefined || key !== "slug")) ||
         typeof value !== "string" ||
         Object.hasOwn(values, key)
       )
@@ -61,7 +76,9 @@ export async function registerOrganizationAction(
 
     const name = values.name;
     const slug = values.slug;
-    const fieldErrors = validateOrganizationRegistration(name, slug);
+    const fieldErrors = target
+      ? validateOrganizationName(name)
+      : validateOrganizationRegistration(name, slug);
     if (Object.keys(fieldErrors).length)
       return {
         ok: false,
@@ -69,7 +86,7 @@ export async function registerOrganizationAction(
         message: "Review the highlighted fields.",
         fieldErrors,
       };
-    if (typeof name !== "string" || typeof slug !== "string")
+    if (typeof name !== "string" || (!target && typeof slug !== "string"))
       return {
         ok: false,
         kind: "validation",
@@ -98,7 +115,11 @@ export async function registerOrganizationAction(
         kind: "unavailable",
         message: messages.unavailable,
       };
-    if (!session.session.permissions.includes(ORGANIZATIONS_CREATE))
+    if (
+      !session.session.permissions.includes(
+        target ? ORGANIZATIONS_UPDATE : ORGANIZATIONS_CREATE,
+      )
+    )
       return {
         ok: false,
         kind: "forbidden",
@@ -114,11 +135,19 @@ export async function registerOrganizationAction(
         message: messages.forbidden,
       };
 
-    const response = await backendCreateOrganizationRequest(
-      cookieStore.toString(),
-      { name: normalizeOrganizationName(name), slug },
-      incoming.csrf,
-    );
+    const response = target
+      ? await backendUpdateOrganizationRequest(
+          cookieStore.toString(),
+          target.id,
+          { name: normalizeOrganizationName(name) },
+          incoming.csrf,
+          target.updatedAt,
+        )
+      : await backendCreateOrganizationRequest(
+          cookieStore.toString(),
+          { name: normalizeOrganizationName(name), slug },
+          incoming.csrf,
+        );
 
     if (response.status === 401)
       return {
@@ -128,9 +157,19 @@ export async function registerOrganizationAction(
       };
     if (response.status === 403)
       return { ok: false, kind: "forbidden", message: messages.forbidden };
+    if (target && [404, 409, 412].includes(response.status))
+      return {
+        ok: false,
+        kind: "conflict",
+        message:
+          "This organization changed or is no longer available for editing. Close this dialog, reset the directory, and reopen the record before saving.",
+      };
     if (response.status === 409)
       return { ok: false, kind: "conflict", message: messages.conflict };
-    if (response.status !== 201 || response.cookies.length !== 0) {
+    if (
+      response.status !== (target ? 200 : 201) ||
+      response.cookies.length !== 0
+    ) {
       return {
         ok: false,
         kind:
@@ -144,7 +183,7 @@ export async function registerOrganizationAction(
         ...(response.status === 400 || response.status === 422
           ? {
               fieldErrors: {
-                slug: "Check the name and subdomain requirements.",
+                name: "Check the organization name and field requirements.",
               },
             }
           : {}),
@@ -152,7 +191,13 @@ export async function registerOrganizationAction(
     }
 
     const organization = parseOrganization(response.body);
-    if (!organization || organization.status !== "PENDING")
+    if (
+      !organization ||
+      (target
+        ? organization.id !== target.id ||
+          organization.name !== normalizeOrganizationName(name)
+        : organization.status !== "PENDING")
+    )
       return {
         ok: false,
         kind: "uncertain",

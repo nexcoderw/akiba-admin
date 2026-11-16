@@ -16,6 +16,7 @@ import {
   type OrganizationStatus,
 } from "@/lib/organizations/contracts";
 import { OrganizationCard } from "./organization-card";
+import { OrganizationForm } from "./organization-form";
 import { OrganizationDetails } from "./organization-details";
 import { OrganizationSearch } from "./organization-search";
 import { OrganizationStatusFilter } from "./organization-status-filter";
@@ -25,16 +26,22 @@ export function OrganizationList({
   data,
   query,
   canCreate,
+  canEdit,
 }: {
   data: OrganizationPage;
   query: OrganizationQuery;
   canCreate: boolean;
+  canEdit: boolean;
 }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
   const [term, setTerm] = useState("");
   const [dialog, setDialog] = useState<{
     organization: Organization;
+    trigger: HTMLElement;
+  } | null>(null);
+  const [formDialog, setFormDialog] = useState<{
+    organization?: Organization;
     trigger: HTMLElement;
   } | null>(null);
   const count = data.items.length;
@@ -108,9 +115,11 @@ export function OrganizationList({
           canCreate ? (
             <Button
               icon={<Icon name="building" />}
-              onClick={() => router.push("/organizations/new")}
+              onClick={(event) =>
+                setFormDialog({ trigger: event.currentTarget })
+              }
             >
-              Register organization
+              Add organization
             </Button>
           ) : undefined
         }
@@ -158,7 +167,9 @@ export function OrganizationList({
               {canCreate && (
                 <Button
                   icon={<Icon name="add" />}
-                  onClick={() => router.push("/organizations/new")}
+                  onClick={(event) =>
+                    setFormDialog({ trigger: event.currentTarget })
+                  }
                 >
                   Add organization
                 </Button>
@@ -183,7 +194,9 @@ export function OrganizationList({
               {canCreate && (
                 <Button
                   icon={<Icon name="add" />}
-                  onClick={() => router.push("/organizations/new")}
+                  onClick={(event) =>
+                    setFormDialog({ trigger: event.currentTarget })
+                  }
                 >
                   Add organization
                 </Button>
@@ -232,6 +245,28 @@ export function OrganizationList({
           organization={dialog.organization}
           returnFocus={dialog.trigger}
           onClose={() => setDialog(null)}
+          onEdit={
+            canEdit && dialog.organization.status !== "ARCHIVED"
+              ? () => {
+                  setFormDialog({
+                    organization: dialog.organization,
+                    trigger: dialog.trigger,
+                  });
+                  setDialog(null);
+                }
+              : undefined
+          }
+        />
+      )}
+      {formDialog && (
+        <OrganizationForm
+          organization={formDialog.organization}
+          returnFocus={formDialog.trigger}
+          onClose={() => setFormDialog(null)}
+          onSaved={() => {
+            setFormDialog(null);
+            startRefresh(() => router.refresh());
+          }}
         />
       )}
     </>

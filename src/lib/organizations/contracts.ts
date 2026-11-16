@@ -1,6 +1,7 @@
 import { isRecord, safeProblem, type SafeProblem } from "../auth/contracts.ts";
 
 export const ORGANIZATIONS_READ = "platform.organizations.read";
+export const ORGANIZATIONS_UPDATE = "platform.organizations.update";
 export const ORGANIZATIONS_CREATE = "platform.organizations.create";
 export const organizationStatuses = [
   "PENDING",
@@ -46,10 +47,8 @@ export function normalizeOrganizationName(value: string): string {
   return value.replace(/^[\s\u0085]+|[\s\u0085]+$/gu, "");
 }
 
-/** Matches the verified CreateOrganizationDto without taking authority from the browser. */
-export function validateOrganizationRegistration(
+export function validateOrganizationName(
   name: unknown,
-  slug: unknown,
 ): OrganizationRegistrationErrors {
   const errors: OrganizationRegistrationErrors = {};
   const normalizedName =
@@ -62,6 +61,35 @@ export function validateOrganizationRegistration(
   ) {
     errors.name = "Enter a valid organization name (up to 160 characters).";
   }
+  return errors;
+}
+
+export function parseOrganizationUpdateTarget(
+  value: unknown,
+): { id: string; updatedAt: string } | null {
+  if (
+    !isRecord(value) ||
+    Object.keys(value).some((key) => key !== "id" && key !== "updatedAt") ||
+    !validOrganizationId(value.id) ||
+    typeof value.updatedAt !== "string"
+  )
+    return null;
+  const timestamp = value.updatedAt;
+  if (
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(timestamp) ||
+    !Number.isFinite(Date.parse(timestamp)) ||
+    new Date(timestamp).toISOString() !== timestamp
+  )
+    return null;
+  return { id: value.id, updatedAt: timestamp };
+}
+
+/** Matches the verified CreateOrganizationDto without taking authority from the browser. */
+export function validateOrganizationRegistration(
+  name: unknown,
+  slug: unknown,
+): OrganizationRegistrationErrors {
+  const errors = validateOrganizationName(name);
   if (
     typeof slug !== "string" ||
     slug.length < 3 ||

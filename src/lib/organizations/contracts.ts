@@ -1,6 +1,7 @@
 import { isRecord, safeProblem, type SafeProblem } from "../auth/contracts.ts";
 
 export const ORGANIZATIONS_READ = "platform.organizations.read";
+export const ORGANIZATIONS_CREATE = "platform.organizations.create";
 export const organizationStatuses = [
   "PENDING",
   "ACTIVE",
@@ -34,6 +35,56 @@ export interface OrganizationQuery {
   status?: OrganizationStatus;
   cursor?: string;
   previous: string[];
+}
+
+export interface OrganizationRegistrationErrors {
+  name?: string;
+  slug?: string;
+}
+
+export function normalizeOrganizationName(value: string): string {
+  return value.replace(/^[\s\u0085]+|[\s\u0085]+$/gu, "");
+}
+
+/** Matches the verified CreateOrganizationDto without taking authority from the browser. */
+export function validateOrganizationRegistration(
+  name: unknown,
+  slug: unknown,
+): OrganizationRegistrationErrors {
+  const errors: OrganizationRegistrationErrors = {};
+  const normalizedName =
+    typeof name === "string" ? normalizeOrganizationName(name) : "";
+  if (
+    typeof name !== "string" ||
+    !/[^\s\u0085]/u.test(normalizedName) ||
+    normalizedName.length > 160 ||
+    normalizedName.includes("\u0000")
+  ) {
+    errors.name = "Enter a valid organization name (up to 160 characters).";
+  }
+  if (
+    typeof slug !== "string" ||
+    slug.length < 3 ||
+    slug.length > 63 ||
+    !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?![\s\S])/u.test(slug)
+  ) {
+    errors.slug =
+      "Use 3–63 lowercase letters or numbers, separated by single hyphens.";
+  }
+  return errors;
+}
+
+export function suggestOrganizationSlug(name: string): string {
+  const slug = name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "")
+    .replace(/-+/gu, "-")
+    .slice(0, 63)
+    .replace(/-+$/u, "");
+  return /^[a-z]/u.test(slug) ? slug : slug ? `org-${slug}`.slice(0, 63) : "";
 }
 export type SearchParams = Record<string, string | string[] | undefined>;
 

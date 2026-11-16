@@ -6,6 +6,7 @@ import { Dialog } from "@/components/shared/dialog";
 import { Icon } from "@/components/shared/icon";
 import type { Organization } from "@/lib/organizations/contracts";
 import { formatOrganizationDateTime } from "./organization-dates";
+import { OrganizationOwnerInvitations } from "./organization-owner-invitations";
 import { OrganizationLifecycle } from "./organization-lifecycle";
 import { OrganizationStatusBadge } from "./organization-status-badge";
 import styles from "./organization-details.module.css";
@@ -26,6 +27,7 @@ export function OrganizationDetails({
   permissions: string[];
   onRefresh: () => void;
 }) {
+  const [ownerBusy, setOwnerBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const timeline = [
     ["Registered", organization.createdAt],
@@ -44,13 +46,13 @@ export function OrganizationDetails({
       }
       returnFocus={returnFocus}
       onClose={onClose}
-      dismissible={!confirming}
+      dismissible={!confirming && !ownerBusy}
       footer={
         onEdit ? (
           <Button
             icon={<Icon name="text" />}
             onClick={onEdit}
-            disabled={confirming}
+            disabled={confirming || ownerBusy}
           >
             Edit organization
           </Button>
@@ -99,6 +101,14 @@ export function OrganizationDetails({
           permissions={permissions}
           onRefresh={onRefresh}
           onInteractionChange={setConfirming}
+          disabled={ownerBusy}
+        />
+        <OrganizationOwnerInvitations
+          key={organization.id}
+          organization={organization}
+          permissions={permissions}
+          disabled={confirming}
+          onInteractionChange={setOwnerBusy}
         />
       </div>
     </Dialog>

@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  Add01Icon,
+  RefreshIcon,
   Alert02Icon,
   AlertCircleIcon,
   ArrowLeft01Icon,
@@ -34,6 +36,8 @@ import {
 import styles from "./icon.module.css";
 
 export type IconName =
+  | "add"
+  | "refresh"
   | "arrow-left"
   | "arrow-right"
   | "building"
@@ -63,6 +67,8 @@ export type IconName =
   | "warning";
 
 const icons: Record<IconName, IconSvgElement> = {
+  add: Add01Icon,
+  refresh: RefreshIcon,
   "arrow-left": ArrowLeft01Icon,
   "arrow-right": ArrowRight01Icon,
   building: Building02Icon,

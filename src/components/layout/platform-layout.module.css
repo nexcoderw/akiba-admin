@@ -1,6 +1,6 @@
 .shell {
   min-block-size: 100dvh;
-  background: var(--ui-subtle);
+  background: #fff;
 }
 
 .body {

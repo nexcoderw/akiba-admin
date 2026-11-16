@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Ref } from "react";
+import { useEffect, useRef, type Ref } from "react";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { Button } from "@/components/shared/button";
 import { Icon } from "@/components/shared/icon";
@@ -31,8 +31,25 @@ export function Navbar({
   menuButtonRef: Ref<HTMLButtonElement>;
   onToggleNavigation: () => void;
 }) {
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Adds a soft shadow once the page scrolls under the bar. Toggled on the DOM
+  // directly, so scrolling never triggers a React render.
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    function update() {
+      header?.toggleAttribute("data-scrolled", window.scrollY > 4);
+    }
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", update);
+    };
+  }, []);
+
   return (
-    <header className={styles.navbar}>
+    <header className={styles.navbar} ref={headerRef}>
       <div className={styles.identity}>
         <Button
           ref={menuButtonRef}
@@ -48,7 +65,12 @@ export function Navbar({
           onClick={onToggleNavigation}
         />
         <Link className={styles.brand} href="/" aria-label="Akiba dashboard">
-          akiba<span>.</span>
+          <span className={styles.brandMark} aria-hidden="true">
+            a
+          </span>
+          <span className={styles.brandText} aria-hidden="true">
+            akiba<span className={styles.brandDot}>.</span>
+          </span>
         </Link>
       </div>
 
@@ -56,6 +78,7 @@ export function Navbar({
         <div className={styles.user}>
           <span className={styles.avatar} aria-hidden="true">
             {initials(displayName)}
+            <span className={styles.status} />
           </span>
           <span className={styles.userCopy}>
             <span className={styles.displayName} title={displayName}>

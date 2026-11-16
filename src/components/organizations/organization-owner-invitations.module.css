@@ -1,0 +1,107 @@
+.section,
+.form {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+.section {
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--ui-divider);
+}
+.section h3 {
+  font-size: var(--text-h4);
+}
+.header,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.header strong,
+.email,
+.metadata dd {
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+.note,
+.metadata dt {
+  color: var(--ui-muted);
+  font-size: var(--text-small);
+  line-height: 1.7;
+}
+.notice,
+.error {
+  padding: var(--space-3);
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--ui-radius);
+  background: var(--ui-subtle);
+  font-size: var(--text-small);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.error {
+  color: var(--ui-danger);
+  border-color: currentColor;
+}
+.list {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--radius-panel);
+  background: var(--ui-surface);
+  min-inline-size: 0;
+}
+.badge {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--ui-divider);
+  border-radius: var(--radius-pill);
+  background: var(--ui-accent);
+  color: var(--ui-primary);
+  font-size: var(--text-caption);
+}
+.badge[data-status="REVOKED"] {
+  background: var(--ui-subtle);
+  color: var(--ui-muted);
+}
+.metadata {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.metadata > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-3);
+}
+.metadata dd {
+  margin: 0;
+  font-size: var(--text-small);
+}
+@media (max-width: 30rem) {
+  .metadata > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+  .actions > button {
+    flex: 1 1 100%;
+  }
+}
+@media (forced-colors: active) {
+  .badge,
+  .card,
+  .notice,
+  .error {
+    border-color: CanvasText;
+  }
+}

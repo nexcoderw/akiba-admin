@@ -1,10 +1,8 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthNotice } from "@/components/auth/auth-notice";
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { getSession } from "@/lib/auth/session.server";
-import { LogoutButton } from "@/components/auth/logout-button";
 import { Icon } from "@/components/shared/icon";
 import { LoadingState } from "@/components/shared/loading-state";
 import styles from "./page.module.css";
@@ -24,23 +22,14 @@ async function AccountLanding() {
     );
   }
   return (
-    <main className={styles.workspace}>
-      <header className={styles.header}>
-        <Link
-          href="/"
-          prefetch={false}
-          className={styles.brand}
-          aria-label="Akiba workspace"
-        >
-          akiba.
-        </Link>
-        <LogoutButton />
-      </header>
+    <section className={styles.workspace} aria-labelledby="dashboard-title">
       <section className={styles.welcome}>
         <div className={styles.status}>
           <Icon name="check" /> Verified platform session
         </div>
-        <h1>Welcome back, {result.session.displayName}.</h1>
+        <h1 id="dashboard-title">
+          Welcome back, {result.session.displayName}.
+        </h1>
         <p>You&apos;re signed in to Akiba Platform Administration.</p>
         <p className={styles.account}>{result.session.email}</p>
         <div className={styles.note}>
@@ -51,7 +40,7 @@ async function AccountLanding() {
           </p>
         </div>
       </section>
-    </main>
+    </section>
   );
 }
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StatePanel } from "@/components/shared/state-panel";
 import {
   organizationProblem,
   organizationReturnHref,
@@ -34,17 +35,11 @@ function DateValue({ value }: { value: string | null }) {
 
 export function OrganizationLoading() {
   return (
-    <section
-      className={styles.loading}
-      role="status"
-      aria-busy="true"
-      aria-live="polite"
-    >
-      <p>Loading organization information…</p>
-      <div className={styles.skeleton} aria-hidden="true" />
-      <div className={styles.skeleton} aria-hidden="true" />
-      <div className={styles.skeleton} aria-hidden="true" />
-    </section>
+    <StatePanel
+      kind="loading"
+      headingLevel={2}
+      title="Loading organization information…"
+    />
   );
 }
 

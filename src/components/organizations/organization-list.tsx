@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/shared/button";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Icon } from "@/components/shared/icon";
 import { PageHeader } from "@/components/shared/page-header";
 import { Pagination } from "@/components/shared/pagination";
@@ -69,6 +70,17 @@ export function OrganizationList({
     );
   }
 
+  function reset() {
+    if (refreshing) return;
+    setTerm("");
+    startRefresh(() => {
+      router.replace(
+        organizationListHref({ limit: query.limit, previous: [] }),
+      );
+      router.refresh();
+    });
+  }
+
   function goToPage(target: number) {
     if (target === 1) navigate(query.status);
     else if (target === page + 1 && canGoNext && data.nextCursor) {
@@ -121,12 +133,15 @@ export function OrganizationList({
             />
           </div>
         </div>
-        {count === 0 ? (
+        {refreshing ? (
+          <StatePanel
+            kind="loading"
+            headingLevel={2}
+            title="Loading organizations…"
+          />
+        ) : count === 0 ? (
           <div className={styles.empty}>
-            <StatePanel
-              kind="empty"
-              layout="compact"
-              headingLevel={2}
+            <EmptyState
               title={
                 query.cursor
                   ? "No more organizations in this result set"
@@ -136,28 +151,53 @@ export function OrganizationList({
               }
               description={
                 query.cursor || query.status
-                  ? "Choose another status or go back to page 1 to see current records."
-                  : "Organizations will appear here when they are registered."
+                  ? "Reset your filters and refresh the directory to see current records."
+                  : "Add your first organization to get started, or reset to check for new records."
               }
-            />
+            >
+              {canCreate && (
+                <Button
+                  icon={<Icon name="add" />}
+                  onClick={() => router.push("/organizations/new")}
+                >
+                  Add organization
+                </Button>
+              )}
+              <Button
+                icon={<Icon name="refresh" />}
+                variant="secondary"
+                pending={refreshing}
+                loadingLabel="Refreshing organizations"
+                onClick={reset}
+              >
+                Reset
+              </Button>
+            </EmptyState>
           </div>
         ) : visible.length === 0 ? (
           <div className={styles.empty}>
-            <StatePanel
-              kind="empty"
-              layout="compact"
-              headingLevel={2}
+            <EmptyState
               title={`No organizations in this view match “${term.trim()}”`}
-              description="Search checks only the organizations on this page, by name or slug. Try another term, or clear the search and open another page."
+              description="No names or slugs on this page match your search. Reset to clear your search and filters and refresh the directory."
             >
+              {canCreate && (
+                <Button
+                  icon={<Icon name="add" />}
+                  onClick={() => router.push("/organizations/new")}
+                >
+                  Add organization
+                </Button>
+              )}
               <Button
-                icon={<Icon name="close" />}
+                icon={<Icon name="refresh" />}
                 variant="secondary"
-                onClick={() => setTerm("")}
+                pending={refreshing}
+                loadingLabel="Refreshing organizations"
+                onClick={reset}
               >
-                Clear search
+                Reset
               </Button>
-            </StatePanel>
+            </EmptyState>
           </div>
         ) : (
           <ul className={styles.grid} role="list">

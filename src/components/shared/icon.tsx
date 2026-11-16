@@ -7,6 +7,7 @@ import {
   ArrowRight01Icon,
   Building02Icon,
   Cancel01Icon,
+  CreditCardIcon,
   DashboardSquare01Icon,
   InformationCircleIcon,
   LockPasswordIcon,
@@ -47,6 +48,10 @@ export type IconName =
   | "text"
   | "user"
   | "users"
+  | "credit-card"
+  | "audit"
+  | "security"
+  | "key"
   | "warning";
 
 const icons: Record<IconName, IconSvgElement> = {
@@ -68,6 +73,10 @@ const icons: Record<IconName, IconSvgElement> = {
   text: TextAlignLeftIcon,
   user: UserIcon,
   users: UserGroupIcon,
+  "credit-card": CreditCardIcon,
+  audit: InformationCircleIcon,
+  security: LockPasswordIcon,
+  key: LockPasswordIcon,
   warning: Alert02Icon,
 };
 

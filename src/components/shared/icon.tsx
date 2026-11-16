@@ -5,15 +5,19 @@ import {
   AlertCircleIcon,
   ArrowDown01Icon,
   ArrowRight01Icon,
+  Building02Icon,
   Cancel01Icon,
+  DashboardSquare01Icon,
   InformationCircleIcon,
   LockPasswordIcon,
   Login03Icon,
+  Logout01Icon,
   Mail01Icon,
   Menu01Icon,
   TextAlignLeftIcon,
   Tick02Icon,
   UserIcon,
+  UserGroupIcon,
   ViewIcon,
   ViewOffSlashIcon,
 } from "@hugeicons/core-free-icons";
@@ -26,9 +30,11 @@ import styles from "./icon.module.css";
 
 export type IconName =
   | "arrow-right"
+  | "building"
   | "check"
   | "chevron-down"
   | "close"
+  | "dashboard"
   | "email"
   | "eye"
   | "eye-off"
@@ -37,15 +43,19 @@ export type IconName =
   | "list"
   | "login"
   | "lock"
+  | "logout"
   | "text"
   | "user"
+  | "users"
   | "warning";
 
 const icons: Record<IconName, IconSvgElement> = {
   "arrow-right": ArrowRight01Icon,
+  building: Building02Icon,
   check: Tick02Icon,
   "chevron-down": ArrowDown01Icon,
   close: Cancel01Icon,
+  dashboard: DashboardSquare01Icon,
   email: Mail01Icon,
   eye: ViewIcon,
   "eye-off": ViewOffSlashIcon,
@@ -54,8 +64,10 @@ const icons: Record<IconName, IconSvgElement> = {
   list: Menu01Icon,
   login: Login03Icon,
   lock: LockPasswordIcon,
+  logout: Logout01Icon,
   text: TextAlignLeftIcon,
   user: UserIcon,
+  users: UserGroupIcon,
   warning: Alert02Icon,
 };
 

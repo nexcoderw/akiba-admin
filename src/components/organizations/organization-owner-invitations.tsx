@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   useTransition,
+  type CSSProperties,
 } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/shared/button";
@@ -285,32 +286,61 @@ export function OrganizationOwnerInvitations({
   }
 
   if (!canRead) return null;
+  const canCreate =
+    page !== null &&
+    ownerInvitationAvailability(organization.status, permissions).create;
   return (
     <section className={styles.section} aria-labelledby={`${id}-title`}>
       <header className={styles.header}>
-        <h3 id={`${id}-title`} tabIndex={-1}>
-          Owner invitations
-        </h3>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={<Icon name="refresh" />}
-          pending={pending}
-          disabled={disabled || modal !== null}
-          loadingLabel="Refreshing owner invitations…"
-          onClick={refresh}
-        >
-          Refresh
-        </Button>
+        <div className={styles.heading}>
+          <span className={styles.headingIcon} aria-hidden="true">
+            <Icon name="users" />
+          </span>
+          <div className={styles.headingCopy}>
+            <h3 id={`${id}-title`} tabIndex={-1}>
+              Owner invitations
+            </h3>
+            <p className={styles.note}>
+              Invitation records show the intended recipient. Verified owner
+              identity, enrollment progress and MFA readiness are not available
+              here.
+            </p>
+          </div>
+        </div>
+        <div className={styles.headerActions}>
+          <Button
+            className={styles.iconButton}
+            variant="secondary"
+            size="sm"
+            icon={<Icon name="refresh" />}
+            aria-label="Refresh owner invitations"
+            title="Refresh"
+            pending={pending}
+            disabled={disabled || modal !== null}
+            loadingLabel=""
+            onClick={refresh}
+          />
+          {canCreate && (
+            <Button
+              size="sm"
+              icon={<Icon name="email" />}
+              disabled={disabled || refreshRequired || modal !== null}
+              onClick={(event) =>
+                open({ kind: "create", trigger: event.currentTarget })
+              }
+            >
+              Invite initial Owner
+            </Button>
+          )}
+        </div>
       </header>
-      <p className={styles.note}>
-        Invitation records show the intended recipient. Verified owner identity,
-        enrollment progress and MFA readiness are not available here.
-      </p>
       {!eligible && (
         <p className={styles.notice}>
-          New invitations and delivery requests are unavailable while this
-          organization is suspended or archived.
+          <Icon name="warning" />
+          <span>
+            New invitations and delivery requests are unavailable while this
+            organization is suspended or archived.
+          </span>
         </p>
       )}
       {(pending && modal === null) || data === null ? (
@@ -322,22 +352,19 @@ export function OrganizationOwnerInvitations({
         />
       ) : data.error ? (
         <p className={styles.error} role="alert">
-          {data.error}
+          <Icon name="error" />
+          <span>{data.error}</span>
         </p>
       ) : (
         page && (
           <>
-            {ownerInvitationAvailability(organization.status, permissions)
-              .create && (
-              <Button
-                icon={<Icon name="email" />}
-                disabled={disabled || refreshRequired || modal !== null}
-                onClick={(event) =>
-                  open({ kind: "create", trigger: event.currentTarget })
-                }
-              >
-                Invite initial Owner
-              </Button>
+            {page.items.length > 0 && (
+              <p className={styles.count}>
+                {page.items.length === 1
+                  ? "1 invitation"
+                  : `${page.items.length} invitations`}{" "}
+                in this view
+              </p>
             )}
             {page.items.length === 0 ? (
               <EmptyState
@@ -347,14 +374,17 @@ export function OrganizationOwnerInvitations({
               />
             ) : (
               <ul className={styles.list}>
-                {page.items.map((invitation) => {
+                {page.items.map((invitation, index) => {
                   const availability = ownerInvitationAvailability(
                     organization.status,
                     permissions,
                     invitation,
                   );
                   return (
-                    <li key={invitation.id}>
+                    <li
+                      key={invitation.id}
+                      style={{ "--i": index } as CSSProperties}
+                    >
                       <OrganizationOwnerInvitationCard
                         invitation={invitation}
                         checkedAt={checkedAt}
@@ -377,53 +407,63 @@ export function OrganizationOwnerInvitations({
                 })}
               </ul>
             )}
-            <nav className={styles.actions} aria-label="Owner invitation pages">
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<Icon name="arrow-left" />}
-                disabled={disabled || history.length < 2 || modal !== null}
-                onClick={() =>
-                  startTransition(() => read(history.slice(0, -1)))
-                }
-              >
-                Previous
-              </Button>
-              <span>Page {history.length}</span>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<Icon name="arrow-right" />}
-                disabled={
-                  disabled ||
-                  !page.nextCursor ||
-                  history.length >= 20 ||
-                  modal !== null
-                }
-                onClick={() => {
-                  if (page.nextCursor)
-                    startTransition(() =>
-                      read([...history, page.nextCursor ?? undefined]),
-                    );
-                }}
-              >
-                Next
-              </Button>
-            </nav>
             {history.length >= 20 && page.nextCursor && (
               <p className={styles.note}>
                 Refresh to restart this bounded navigation history.
               </p>
             )}
+            <p className={styles.fine}>
+              Dates use Kigali time. Email delivery may be unavailable. Resend
+              and reissue are not supported; failed or uncertain delivery needs
+              operator review. Accepted invitations do not prove owner MFA or
+              organization readiness.
+            </p>
+            {/* Footer bar: pinned to the bottom of the sheet, never scrolled past. */}
+            <nav
+              className={styles.pagination}
+              aria-label="Owner invitation pages"
+            >
+              <p className={styles.page} aria-live="polite">
+                Page <strong key={history.length}>{history.length}</strong>
+              </p>
+              <div className={styles.pager}>
+                <Button
+                  className={styles.iconButton}
+                  variant="secondary"
+                  size="sm"
+                  icon={<Icon name="arrow-left" />}
+                  aria-label="Previous page"
+                  title="Previous page"
+                  disabled={disabled || history.length < 2 || modal !== null}
+                  onClick={() =>
+                    startTransition(() => read(history.slice(0, -1)))
+                  }
+                />
+                <Button
+                  className={styles.iconButton}
+                  variant="secondary"
+                  size="sm"
+                  icon={<Icon name="arrow-right" />}
+                  aria-label="Next page"
+                  title="Next page"
+                  disabled={
+                    disabled ||
+                    !page.nextCursor ||
+                    history.length >= 20 ||
+                    modal !== null
+                  }
+                  onClick={() => {
+                    if (page.nextCursor)
+                      startTransition(() =>
+                        read([...history, page.nextCursor ?? undefined]),
+                      );
+                  }}
+                />
+              </div>
+            </nav>
           </>
         )
       )}
-      <p className={styles.note}>
-        Dates use Kigali time. Email delivery may be unavailable. Resend and
-        reissue are not supported; failed or uncertain delivery needs operator
-        review. Accepted invitations do not prove owner MFA or organization
-        readiness.
-      </p>
       {modal && (
         <Dialog
           presentation="sheet"
@@ -498,7 +538,8 @@ export function OrganizationOwnerInvitations({
               />
               {error && (
                 <p className={styles.error} role="alert">
-                  {error}
+                  <Icon name="error" />
+                  <span>{error}</span>
                 </p>
               )}
               <div className={styles.actions}>
@@ -522,10 +563,14 @@ export function OrganizationOwnerInvitations({
             </Form>
           ) : (
             <div className={styles.form}>
-              <p className={styles.email}>{modal.invitation.email}</p>
+              <p className={styles.email}>
+                <Icon name="email" />
+                <span>{modal.invitation.email}</span>
+              </p>
               {error && (
                 <p className={styles.error} role="alert">
-                  {error}
+                  <Icon name="error" />
+                  <span>{error}</span>
                 </p>
               )}
               <div className={styles.actions}>

@@ -1,62 +1,337 @@
-.section,
 .form {
   display: grid;
   gap: var(--space-4);
   min-inline-size: 0;
 }
+
+/*
+  The section fills the sheet's height, so the pagination (margin-block-start: auto)
+  rests at the bottom even when there are few invitations.
+  --sheet-chrome is the sheet's header + padding; tune it if the footer
+  sits too high (decrease) or the sheet starts to scroll (increase).
+*/
 .section {
-  padding-block: 0;
-}
-.section h3 {
-  font-size: var(--text-h4);
-}
-.header,
-.actions {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  min-block-size: calc(100dvh - var(--sheet-chrome, 10rem));
+  padding-block: 0;
+  animation: rise 450ms var(--motion-ease) both;
+}
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-3);
   min-inline-size: 0;
 }
-.email {
-  overflow-wrap: anywhere;
+
+.heading {
+  display: flex;
+  flex: 1 1 18rem;
+  align-items: flex-start;
+  gap: var(--space-3);
   min-inline-size: 0;
 }
+
+.headingIcon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background: var(--ui-accent);
+  color: var(--ui-primary);
+  box-shadow: inset 0 0 0 1px var(--brand-200);
+}
+
+.headingIcon > svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+.headingCopy {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.section h3 {
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+}
+
+.section h3:focus {
+  outline: none;
+}
+
 .note {
+  max-inline-size: 38rem;
   color: var(--ui-muted);
   font-size: var(--text-small);
   line-height: 1.7;
 }
+
+/* ---------- Header actions (one line) ---------- */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/*
+  Icon-only round buttons. The selector is repeated to outrank the button's own
+  size padding; the asymmetric padding offsets the gap Button reserves for its label.
+*/
+.iconButton.iconButton.iconButton {
+  flex: 0 0 auto;
+  inline-size: 2.75rem;
+  padding-inline: 0.625rem 0;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ui-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+
+.count::before {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--brand-500);
+  box-shadow: 0 0 0 0.25rem var(--ui-accent);
+}
+
+/* ---------- Invitation list ---------- */
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Every card fills the same column, so rows line up edge to edge. */
+.list > li {
+  display: grid;
+  min-inline-size: 0;
+  animation: rise 450ms var(--motion-ease) both;
+  animation-delay: calc(var(--i, 0) * 55ms + 80ms);
+}
+
+.list > li > * {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ---------- Callouts ---------- */
 .notice,
 .error {
-  padding: var(--space-3);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--ui-divider);
-  border-radius: var(--ui-radius);
+  border-radius: 1.25rem;
   background: var(--ui-subtle);
   font-size: var(--text-small);
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
+
+.notice > svg,
+.error > svg {
+  flex: 0 0 auto;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin-block-start: 0.25rem;
+}
+
+.notice > span,
+.error > span {
+  min-inline-size: 0;
+}
+
+.notice {
+  border-color: var(--ui-warning);
+  background: var(--ui-warning-surface);
+  color: var(--ui-warning);
+}
+
 .error {
+  border-color: var(--ui-danger);
+  background: var(--ui-danger-surface);
   color: var(--ui-danger);
-  border-color: currentColor;
 }
-.list {
-  display: grid;
+
+/* ---------- Fine print ---------- */
+.fine {
+  color: var(--ui-muted);
+  font-size: var(--text-caption);
+  line-height: 1.7;
+}
+
+/* ---------- Pagination (footer bar) ---------- */
+.pagination {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  margin-block-start: auto;
+  padding-block: var(--space-3);
+  border-block-start: 1px solid var(--ui-divider);
+  background: var(--ui-surface);
 }
-@media (max-width: 30rem) {
-  .actions > button {
-    flex: 1 1 100%;
+
+.page {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ui-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.page strong {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 2rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--radius-pill);
+  background: var(--ui-accent);
+  color: var(--ui-primary);
+  font-weight: var(--weight-bold);
+  animation: pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------- Dialog content ---------- */
+.email {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--brand-200);
+  border-radius: 1.25rem;
+  background: var(--ui-accent);
+  color: var(--ui-text);
+  font-weight: var(--weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.email > svg {
+  flex: 0 0 auto;
+  color: var(--ui-primary);
+}
+
+.email > span {
+  min-inline-size: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+/* ---------- Motion ---------- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 30rem) {
+  .headerActions {
+    inline-size: 100%;
+  }
+
+  .headerActions > :last-child:not(.iconButton) {
+    flex: 1 1 auto;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .actions > button {
+    inline-size: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section,
+  .list > li,
+  .page strong {
+    animation: none;
+  }
+}
+
 @media (forced-colors: active) {
   .notice,
-  .error {
+  .error,
+  .email {
     border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .pagination {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .headingIcon {
+    border: 1px solid CanvasText;
+    background: transparent;
+    box-shadow: none;
+    color: CanvasText;
+  }
+
+  .page strong {
+    border: 1px solid CanvasText;
+    background: transparent;
   }
 }

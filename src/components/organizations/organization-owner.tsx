@@ -22,7 +22,6 @@ export function OrganizationOwner({
 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const [trigger, setTrigger] = useState<HTMLElement | null>(null);
-  const [busy, setBusy] = useState(false);
   const canRead = permissions.includes(OWNER_PERMISSIONS.read);
   useEffect(() => {
     return () => {
@@ -31,7 +30,6 @@ export function OrganizationOwner({
   }, [canRead, onInteractionChange]);
 
   function close() {
-    if (busy) return;
     setTrigger(null);
     onInteractionChange?.(false);
   }
@@ -72,22 +70,52 @@ export function OrganizationOwner({
         </p>
       )}
       {trigger && canRead && (
-        <Dialog
-          presentation="sheet"
-          title="Organization owner"
-          description={organization.name}
+        <OrganizationOwnerSheet
+          organization={organization}
+          permissions={permissions}
           returnFocus={trigger}
-          dismissible={!busy}
           onClose={close}
-        >
-          <OrganizationOwnerInvitations
-            key={organization.id}
-            organization={organization}
-            permissions={permissions}
-            onInteractionChange={setBusy}
-          />
-        </Dialog>
+        />
       )}
     </section>
+  );
+}
+
+/** Shared by the details shortcut and the direct detail page entry point. */
+export function OrganizationOwnerSheet({
+  organization,
+  permissions,
+  returnFocus,
+  onClose,
+}: {
+  organization: Organization;
+  permissions: string[];
+  returnFocus: HTMLElement;
+  onClose: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const canRead = permissions.includes(OWNER_PERMISSIONS.read);
+  return (
+    <Dialog
+      presentation="sheet"
+      title="Organization owner"
+      description={organization.name}
+      returnFocus={returnFocus}
+      dismissible={!busy}
+      onClose={onClose}
+    >
+      {canRead ? (
+        <OrganizationOwnerInvitations
+          key={organization.id}
+          organization={organization}
+          permissions={permissions}
+          onInteractionChange={setBusy}
+        />
+      ) : (
+        <p className={styles.note}>
+          You don&apos;t have permission to view owner invitations.
+        </p>
+      )}
+    </Dialog>
   );
 }

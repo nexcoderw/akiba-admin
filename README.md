@@ -480,3 +480,20 @@ suspension responses that alter unrelated lifecycle timestamps. These tests do n
 live database isolation, provider delivery or browser accessibility. Manually check nested
 modal cancellation/Escape, focus restoration, repeated Enter/clicks, narrow/high-zoom layouts,
 filtered navigation, expiration and concurrent administration before approval.
+
+### Organization details tabs and owner sheet
+
+The directory details dialog separates Organization details and Organization owner into
+independent components. Tabs support Left/Right, Home/End and roving keyboard focus.
+The owner tab opens a right-side sheet; invitation data is fetched only when that sheet
+is mounted, and is discarded when it closes. The direct detail page uses the same owner
+entry point. Recipient cards group identity, invitation status, delivery, lifecycle dates
+and eligible actions without presenting invitation recipients as verified account owners.
+
+Owner creation, delivery confirmation and revocation also use the shared dialog's sheet
+presentation. The existing permission checks, request guards, uncertain-outcome recovery,
+focus restoration and protected pending states remain in place. Parent dialogs cannot
+be dismissed during nested actions. Sheets fill the height, use an independently scrolling
+body, remain within narrow viewports, and respect reduced motion. Browser verification is
+still required for keyboard tabs, nested sheets, Escape/cancellation, focus restoration,
+mobile layouts and blocked dismissal during writes.

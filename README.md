@@ -484,8 +484,10 @@ filtered navigation, expiration and concurrent administration before approval.
 ### Organization details tabs and owner sheet
 
 The directory details dialog separates Organization details and Organization owner into
-independent components. Tabs support Left/Right, Home/End and roving keyboard focus.
-The owner tab opens a right-side sheet; invitation data is fetched only when that sheet
+independent components. Compact, content-sized controls look like tabs and use native
+button keyboard behavior. Organization details remains visible; selecting Organization
+owner immediately opens a right-side sheet without an intermediate owner panel.
+Invitation data is fetched only when that sheet
 is mounted, and is discarded when it closes. The direct detail page uses the same owner
 entry point. Recipient cards group identity, invitation status, delivery, lifecycle dates
 and eligible actions without presenting invitation recipients as verified account owners.
@@ -495,5 +497,5 @@ presentation. The existing permission checks, request guards, uncertain-outcome 
 focus restoration and protected pending states remain in place. Parent dialogs cannot
 be dismissed during nested actions. Sheets fill the height, use an independently scrolling
 body, remain within narrow viewports, and respect reduced motion. Browser verification is
-still required for keyboard tabs, nested sheets, Escape/cancellation, focus restoration,
+still required for keyboard controls, nested sheets, Escape/cancellation, focus restoration,
 mobile layouts and blocked dismissal during writes.

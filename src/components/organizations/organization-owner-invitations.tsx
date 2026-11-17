@@ -29,7 +29,7 @@ import {
 } from "@/lib/organizations/owner-invitations";
 import type { OwnerInvitationResult } from "@/lib/organizations/owner-invitation-service";
 import type { Organization } from "@/lib/organizations/contracts";
-import { formatOrganizationDateTime } from "./organization-dates";
+import { OrganizationOwnerInvitationCard } from "./organization-owner-invitation-card";
 import styles from "./organization-owner-invitations.module.css";
 
 type Modal =
@@ -39,12 +39,6 @@ type Modal =
       invitation: OwnerInvitation;
       trigger: HTMLElement;
     };
-const labels = {
-  PENDING_DELIVERY: "Pending delivery",
-  SENT: "Sent",
-  ACCEPTED: "Accepted",
-  REVOKED: "Revoked",
-};
 
 export function OrganizationOwnerInvitations({
   organization,
@@ -295,7 +289,7 @@ export function OrganizationOwnerInvitations({
     <section className={styles.section} aria-labelledby={`${id}-title`}>
       <header className={styles.header}>
         <h3 id={`${id}-title`} tabIndex={-1}>
-          Organization Owner
+          Owner invitations
         </h3>
         <Button
           variant="secondary"
@@ -353,125 +347,34 @@ export function OrganizationOwnerInvitations({
               />
             ) : (
               <ul className={styles.list}>
-                {page.items.map((invitation) => (
-                  <li key={invitation.id} className={styles.card}>
-                    <div className={styles.header}>
-                      <strong>{invitation.displayName}</strong>
-                      <span
-                        className={styles.badge}
-                        data-status={invitation.status}
-                      >
-                        {labels[invitation.status]}
-                      </span>
-                    </div>
-                    <p className={styles.email}>{invitation.email}</p>
-                    <dl className={styles.metadata}>
-                      <div>
-                        <dt>Invited</dt>
-                        <dd>
-                          {formatOrganizationDateTime(invitation.createdAt)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Delivery</dt>
-                        <dd>
-                          {invitation.deliveryStatus
-                            ? deliveryLabels[invitation.deliveryStatus]
-                            : "Not requested"}
-                        </dd>
-                      </div>
-                      {invitation.sentAt && (
-                        <div>
-                          <dt>Sent</dt>
-                          <dd>
-                            {formatOrganizationDateTime(invitation.sentAt)}
-                          </dd>
-                        </div>
-                      )}
-                      <div>
-                        <dt>Expires</dt>
-                        <dd>
-                          {invitation.expiresAt
-                            ? formatOrganizationDateTime(invitation.expiresAt)
-                            : "Not issued yet"}
-                        </dd>
-                      </div>
-                      {invitation.acceptedAt && (
-                        <div>
-                          <dt>Accepted</dt>
-                          <dd>
-                            {formatOrganizationDateTime(invitation.acceptedAt)}
-                          </dd>
-                        </div>
-                      )}
-                      {invitation.revokedAt && (
-                        <div>
-                          <dt>Revoked</dt>
-                          <dd>
-                            {formatOrganizationDateTime(invitation.revokedAt)}
-                          </dd>
-                        </div>
-                      )}
-                    </dl>
-                    {invitation.status === "SENT" &&
-                      invitation.expiresAt &&
-                      checkedAt !== null &&
-                      Date.parse(invitation.expiresAt) <= checkedAt && (
-                        <p className={styles.notice}>
-                          At the last refresh, the recorded expiration time had
-                          passed. The stored invitation status is still Sent.
-                        </p>
-                      )}
-                    <div className={styles.actions}>
-                      {ownerInvitationAvailability(
-                        organization.status,
-                        permissions,
-                        invitation,
-                      ).delivery && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          icon={<Icon name="email" />}
-                          disabled={
-                            disabled || refreshRequired || modal !== null
-                          }
-                          onClick={(event) =>
-                            open({
-                              kind: "delivery",
-                              invitation,
-                              trigger: event.currentTarget,
-                            })
-                          }
-                        >
-                          Request delivery
-                        </Button>
-                      )}
-                      {ownerInvitationAvailability(
-                        organization.status,
-                        permissions,
-                        invitation,
-                      ).revoke && (
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          icon={<Icon name="close" />}
-                          disabled={
-                            disabled || refreshRequired || modal !== null
-                          }
-                          onClick={(event) =>
-                            open({
-                              kind: "revoke",
-                              invitation,
-                              trigger: event.currentTarget,
-                            })
-                          }
-                        >
-                          Revoke invitation
-                        </Button>
-                      )}
-                    </div>
-                  </li>
-                ))}
+                {page.items.map((invitation) => {
+                  const availability = ownerInvitationAvailability(
+                    organization.status,
+                    permissions,
+                    invitation,
+                  );
+                  return (
+                    <li key={invitation.id}>
+                      <OrganizationOwnerInvitationCard
+                        invitation={invitation}
+                        checkedAt={checkedAt}
+                        disabled={disabled || refreshRequired || modal !== null}
+                        onDelivery={
+                          availability.delivery
+                            ? (trigger) =>
+                                open({ kind: "delivery", invitation, trigger })
+                            : undefined
+                        }
+                        onRevoke={
+                          availability.revoke
+                            ? (trigger) =>
+                                open({ kind: "revoke", invitation, trigger })
+                            : undefined
+                        }
+                      />
+                    </li>
+                  );
+                })}
               </ul>
             )}
             <nav className={styles.actions} aria-label="Owner invitation pages">
@@ -523,6 +426,7 @@ export function OrganizationOwnerInvitations({
       </p>
       {modal && (
         <Dialog
+          presentation="sheet"
           title={
             modal.kind === "create"
               ? "Invite initial Organization Owner"

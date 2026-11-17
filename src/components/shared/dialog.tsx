@@ -14,6 +14,7 @@ export function Dialog({
   title,
   description,
   size = "medium",
+  presentation = "dialog",
   dismissible = true,
   returnFocus,
   onClose,
@@ -23,6 +24,7 @@ export function Dialog({
   readonly title: ReactNode;
   readonly description?: ReactNode;
   readonly size?: "small" | "medium" | "large";
+  readonly presentation?: "dialog" | "sheet";
   /** False while a request is pending, so Escape, backdrop and close cannot abandon it. */
   readonly dismissible?: boolean;
   /** Explicit trigger: Safari does not focus buttons on click, so activeElement is unreliable. */
@@ -66,6 +68,7 @@ export function Dialog({
       ref={dialog}
       className={styles.dialog}
       data-size={size}
+      data-presentation={presentation}
       aria-labelledby={`${id}-title`}
       aria-describedby={description ? `${id}-description` : undefined}
       onCancel={(event) => {

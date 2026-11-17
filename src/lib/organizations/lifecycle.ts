@@ -138,7 +138,12 @@ export async function suspendOrganization(
       organization.slug !== current.slug ||
       organization.name !== current.name ||
       organization.status !== "SUSPENDED" ||
+      organization.createdAt !== current.createdAt ||
+      organization.activatedAt !== current.activatedAt ||
+      organization.archivedAt !== current.archivedAt ||
       organization.suspendedAt === null ||
+      Date.parse(organization.suspendedAt) >
+        Date.parse(organization.updatedAt) ||
       Date.parse(organization.updatedAt) <= Date.parse(target.updatedAt)
     )
       return failure(502);

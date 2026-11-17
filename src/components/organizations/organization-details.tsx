@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/shared/button";
 import { Dialog } from "@/components/shared/dialog";
 import { Icon } from "@/components/shared/icon";
 import type { Organization } from "@/lib/organizations/contracts";
-import { formatOrganizationDateTime } from "./organization-dates";
-import { OrganizationLifecycle } from "./organization-lifecycle";
-import { OrganizationStatusBadge } from "./organization-status-badge";
+import { OrganizationOverview } from "./organization-overview";
+import { OrganizationOwner } from "./organization-owner";
 import styles from "./organization-details.module.css";
 
-/** Lifecycle confirmation locks conflicting controls while retaining the directory snapshot. */
+const tabs = [
+  { id: "details", label: "Organization details", icon: "building" },
+  { id: "owner", label: "Organization owner", icon: "users" },
+] as const;
+
 export function OrganizationDetails({
   organization,
   returnFocus,
@@ -26,14 +29,30 @@ export function OrganizationDetails({
   permissions: string[];
   onRefresh: () => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
-  const timeline = [
-    ["Registered", organization.createdAt],
-    ["Last updated", organization.updatedAt],
-    ["Last activated", organization.activatedAt],
-    ["Last suspended", organization.suspendedAt],
-    ["Archived", organization.archivedAt],
-  ] as const;
+  const id = useId();
+  const [active, setActive] = useState<"details" | "owner">("details");
+  const [busy, setBusy] = useState(false);
+
+  function navigateTabs(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) {
+    if (busy) return;
+    let next: number;
+    if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+    else if (event.key === "ArrowLeft")
+      next = (index + tabs.length - 1) % tabs.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = tabs.length - 1;
+    else return;
+    event.preventDefault();
+    setActive(tabs[next].id);
+    event.currentTarget
+      .closest('[role="tablist"]')
+      ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+      [next]?.focus();
+  }
+
   return (
     <Dialog
       title={
@@ -42,64 +61,77 @@ export function OrganizationDetails({
           <span>{organization.name}</span>
         </span>
       }
+      size="large"
       returnFocus={returnFocus}
       onClose={onClose}
-      dismissible={!confirming}
+      dismissible={!busy}
       footer={
-        onEdit ? (
-          <Button
-            icon={<Icon name="text" />}
-            onClick={onEdit}
-            disabled={confirming}
-          >
+        active === "details" && onEdit ? (
+          <Button icon={<Icon name="text" />} onClick={onEdit} disabled={busy}>
             Edit organization
           </Button>
         ) : undefined
       }
     >
       <div className={styles.details}>
-        <section className={styles.section}>
-          <div className={styles.sectionHeading}>
-            <h3>Registry record</h3>
-            <OrganizationStatusBadge status={organization.status} />
-          </div>
-          <dl className={styles.fields}>
-            <div>
-              <dt>Slug</dt>
-              <dd>{organization.slug}</dd>
-            </div>
-            <div>
-              <dt>Organization UUID</dt>
-              <dd className={styles.identifier}>{organization.id}</dd>
-            </div>
-          </dl>
-        </section>
-        <section className={styles.section}>
-          <div className={styles.sectionHeading}>
-            <h3>Lifecycle dates</h3>
-            <span className={styles.note}>Kigali time (UTC+2)</span>
-          </div>
-          <dl className={styles.timeline}>
-            {timeline.map(([label, value]) =>
-              value ? (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>
-                    <time dateTime={value}>
-                      {formatOrganizationDateTime(value)}
-                    </time>
-                  </dd>
-                </div>
-              ) : null,
-            )}
-          </dl>
-        </section>
-        <OrganizationLifecycle
-          organization={organization}
-          permissions={permissions}
-          onRefresh={onRefresh}
-          onInteractionChange={setConfirming}
-        />
+        <div
+          className={styles.tabs}
+          role="tablist"
+          aria-label="Organization information"
+        >
+          {tabs.map((tab, index) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              id={`${id}-${tab.id}-tab`}
+              aria-controls={`${id}-${tab.id}-panel`}
+              aria-selected={active === tab.id}
+              tabIndex={active === tab.id ? 0 : -1}
+              className={styles.tab}
+              disabled={busy}
+              onClick={() => setActive(tab.id)}
+              onKeyDown={(event) => navigateTabs(event, index)}
+            >
+              <Icon name={tab.icon} size={18} />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+        <div
+          role="tabpanel"
+          id={`${id}-details-panel`}
+          aria-labelledby={`${id}-details-tab`}
+          hidden={active !== "details"}
+          tabIndex={0}
+          className={styles.panel}
+        >
+          {active === "details" && (
+            <OrganizationOverview
+              organization={organization}
+              permissions={permissions}
+              onRefresh={onRefresh}
+              onInteractionChange={setBusy}
+            />
+          )}
+        </div>
+        <div
+          role="tabpanel"
+          id={`${id}-owner-panel`}
+          aria-labelledby={`${id}-owner-tab`}
+          hidden={active !== "owner"}
+          tabIndex={0}
+          className={styles.panel}
+        >
+          {active === "owner" && (
+            <OrganizationOwner
+              key={organization.id}
+              organization={organization}
+              permissions={permissions}
+              onInteractionChange={setBusy}
+            />
+          )}
+        </div>
       </div>
     </Dialog>
   );

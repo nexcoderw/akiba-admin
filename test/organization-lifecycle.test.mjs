@@ -266,3 +266,17 @@ test("edit success requires the selected organization and an advanced version", 
     null,
   );
 });
+
+test("suspension cannot confirm unrelated lifecycle timestamp changes", async () => {
+  for (const body of [
+    { ...suspended, createdAt: suspended.updatedAt },
+    { ...suspended, activatedAt: suspended.updatedAt },
+    { ...suspended, archivedAt: suspended.updatedAt },
+    { ...suspended, suspendedAt: "2026-01-01T03:00:00.000Z" },
+  ]) {
+    const { services } = setup({
+      suspend: async () => ({ status: 200, body }),
+    });
+    assert.equal((await suspendOrganization(target, services)).kind, "error");
+  }
+});

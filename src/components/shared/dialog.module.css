@@ -108,6 +108,42 @@
     transform: translateY(0.5rem) scale(0.98);
   }
 }
+.dialog[data-presentation="sheet"] {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  inline-size: min(42rem, 100%);
+  block-size: 100dvh;
+  max-block-size: 100dvh;
+  margin: 0;
+  border-block: 0;
+  border-inline-end: 0;
+  border-radius: 0;
+}
+.dialog[data-presentation="sheet"] .surface {
+  block-size: 100%;
+}
+.dialog[data-presentation="sheet"] .header {
+  padding-block-start: max(var(--space-5), env(safe-area-inset-top));
+}
+.dialog[data-presentation="sheet"] .body {
+  padding-block-end: max(var(--space-6), env(safe-area-inset-bottom));
+}
+.dialog[data-presentation="sheet"][open] {
+  animation: slide-in 220ms var(--motion-ease);
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open],
+  .dialog[data-presentation="sheet"][open] {
+    animation: none;
+  }
+}
 @keyframes rise {
   from {
     transform: translateY(1.5rem);

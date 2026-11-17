@@ -415,3 +415,85 @@ Browser verification must cover Cancel/Escape, focus restoration, rapid clicks, 
 filtered pagination, narrow layouts, and concurrent changes from two administrator tabs.
 The Step 4 milestone remains partially complete until backend approval/reactivation
 readiness support and runtime verification are available.
+
+## Organization Owner invitation management
+
+The organization details dialog and `/organizations/[id]` now include a permission-aware
+Organization Owner section. It shows intended recipient metadata and invitation history;
+it does not identify a verified active owner or infer enrollment/MFA readiness.
+
+The verified API base is `/api/v1/platform/organizations/:organizationId/owner-invitations`:
+
+| Operation        | Method and suffix                | Permission                                        | Request and result                                           |
+| ---------------- | -------------------------------- | ------------------------------------------------- | ------------------------------------------------------------ |
+| List             | GET base, `?limit=20&cursor=...` | `platform.organizations.owners.read`              | Bounded items and nextCursor                                 |
+| Create           | POST base                        | `platform.organizations.owners.invite`            | displayName and canonical email; 201 PENDING_DELIVERY record |
+| Revoke           | POST `/:invitationId/revocation` | `platform.organizations.owners.revoke-invitation` | Empty body; 200 REVOKED record                               |
+| Reserve delivery | POST `/:invitationId/delivery`   | `platform.organizations.owners.send-invitation`   | Empty body; 202 reservation status, not inbox receipt        |
+
+The frontend additionally requires organization read and owner-invitation read permissions
+for this management interface and its server handlers. Creation and delivery are allowed
+only for PENDING or ACTIVE organizations. Revocation of PENDING_DELIVERY or SENT invitations
+remains available on suspended/archived organizations, matching the API's revocation policy.
+Accepted invitations cannot be revoked through this operation. The backend makes the final
+eligibility and concurrency decisions in its scoped transactions; it accepts no client actor,
+role, token, arbitrary expiration or membership assignment.
+
+Every server action, including list reads arriving through POST, validates the trusted admin
+Origin, CSRF cookie, verified platform session, exact permission and UUID selectors.
+The existing transport retains platform-cookie allowlisting, no-store reads, bounded response
+bodies, redirect rejection and timeouts. Before revoke/delivery, the service reads one scoped
+20-item page and verifies that the invitation belongs to the selected organization. Stale
+page selections require refresh; it never scans unbounded history. Navigation history is
+bounded to 20 pages, with no fabricated total counts or server-wide filtering.
+
+Response projection strips tokens, digests, links, provider messages and unexpected fields.
+Creating a record neither sends an email nor creates an owner identity/membership/session.
+Canonical invitation statuses are PENDING_DELIVERY, SENT, ACCEPTED and REVOKED. There is no
+EXPIRED enum; the UI separately notes elapsed recorded expiry at its last refresh. Dates use
+Kigali time. Delivery QUEUED/PROCESSING is distinct from provider CONFIRMED, and CONFIRMED does
+not prove inbox receipt. FAILED and UNCERTAIN need operator review. No plaintext invitation
+proofs, provider secrets or application data are written to browser storage or logs.
+
+Create uses the shared Form/Input/Button components. Delivery and revocation require explicit
+confirmation. Buttons and a synchronous request lock prevent overlapping writes. Errors remain
+inline and in safe toasts. A 401 redirects to the established expiration flow; 403/network
+errors do not log out a valid session. Mutations are never automatically retried. Conflict or
+uncertain outcomes disable further writes until a fresh list read succeeds. Closing the error
+flow refreshes status. Confirmed operations revalidate organization routes and reload invitation
+data while preserving the directory's filters and cursor context. Late responses are ignored
+after scope changes/unmounts; conflicting lifecycle/edit controls are locked during dialogs.
+
+Remaining backend capabilities are explicit: there is no resend/reissue route, no platform
+owner-identity/enrollment/MFA-readiness endpoint, and activation still fails closed. Delivery
+reservation is not a resend mechanism; it is gated on reviewed configuration, persistence
+security checks and provider/worker availability. No external email, DNS or database resources
+are provisioned by this frontend. Test and live provider availability must be verified by
+operators. This milestone remains partially complete pending these dependencies and runtime
+verification.
+
+`test/owner-invitations.test.mjs` uses the native Node test runner with injected services to
+cover canonical email validation, exact DTOs, action eligibility, server authorization,
+request-protection rejection, cross-organization records, secret projection, state conflicts,
+uncertain outcomes and delivery semantics. The Step 4 regression suite additionally rejects
+suspension responses that alter unrelated lifecycle timestamps. These tests do not establish
+live database isolation, provider delivery or browser accessibility. Manually check nested
+modal cancellation/Escape, focus restoration, repeated Enter/clicks, narrow/high-zoom layouts,
+filtered navigation, expiration and concurrent administration before approval.
+
+### Organization details tabs and owner sheet
+
+The directory details dialog separates Organization details and Organization owner into
+independent components. Tabs support Left/Right, Home/End and roving keyboard focus.
+The owner tab opens a right-side sheet; invitation data is fetched only when that sheet
+is mounted, and is discarded when it closes. The direct detail page uses the same owner
+entry point. Recipient cards group identity, invitation status, delivery, lifecycle dates
+and eligible actions without presenting invitation recipients as verified account owners.
+
+Owner creation, delivery confirmation and revocation also use the shared dialog's sheet
+presentation. The existing permission checks, request guards, uncertain-outcome recovery,
+focus restoration and protected pending states remain in place. Parent dialogs cannot
+be dismissed during nested actions. Sheets fill the height, use an independently scrolling
+body, remain within narrow viewports, and respect reduced motion. Browser verification is
+still required for keyboard tabs, nested sheets, Escape/cancellation, focus restoration,
+mobile layouts and blocked dismissal during writes.

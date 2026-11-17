@@ -79,7 +79,7 @@
 }
 .title {
   max-inline-size: 28ch;
-  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-size: var(--text-caption);
 }
 .description {
   max-inline-size: 46ch;

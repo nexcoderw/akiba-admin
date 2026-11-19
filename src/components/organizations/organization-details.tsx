@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/shared/button";
 import { Dialog } from "@/components/shared/dialog";
 import { Icon } from "@/components/shared/icon";
@@ -28,14 +28,49 @@ export function OrganizationDetails({
   const id = useId();
   const [busy, setBusy] = useState(false);
   const [ownerTrigger, setOwnerTrigger] = useState<HTMLElement | null>(null);
+  const navigationRef = useRef<HTMLDivElement>(null);
   const locked = busy || ownerTrigger !== null;
+  const ownerOpen = ownerTrigger !== null;
   const canReadOwner = permissions.includes(OWNER_PERMISSIONS.read);
+
+  // Slides one shared pill under the active tab. Positions are written straight
+  // to CSS variables, so there is no extra render and no layout flash.
+  useLayoutEffect(() => {
+    const navigation = navigationRef.current;
+    if (!navigation) return;
+
+    function place() {
+      const active = navigation?.querySelector<HTMLElement>(
+        '[data-active="true"]',
+      );
+      if (!navigation || !active) return;
+      navigation.style.setProperty("--pill-x", `${active.offsetLeft}px`);
+      navigation.style.setProperty("--pill-y", `${active.offsetTop}px`);
+      navigation.style.setProperty("--pill-w", `${active.offsetWidth}px`);
+      navigation.style.setProperty("--pill-h", `${active.offsetHeight}px`);
+      navigation.setAttribute("data-placed", "");
+    }
+
+    place();
+    // Enable the slide only after the first placement, so it doesn't animate in from 0.
+    const frame = requestAnimationFrame(() =>
+      navigation.setAttribute("data-ready", ""),
+    );
+    const observer = new ResizeObserver(place);
+    observer.observe(navigation);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [ownerOpen]);
 
   return (
     <Dialog
       title={
         <span className={styles.title}>
-          <Icon name="building" />
+          <span className={styles.titleIcon} aria-hidden="true">
+            <Icon name="building" />
+          </span>
           <span>{organization.name}</span>
         </span>
       }
@@ -46,21 +81,26 @@ export function OrganizationDetails({
       footer={
         onEdit ? (
           <Button
+            className={styles.edit}
+            size="sm"
             icon={<Icon name="text" />}
+            aria-label="Edit organization"
             onClick={onEdit}
             disabled={locked}
           >
-            Edit organization
+            Edit
           </Button>
         ) : undefined
       }
     >
       <div className={styles.details}>
         <div
+          ref={navigationRef}
           className={styles.navigation}
           role="group"
           aria-label="Organization views"
         >
+          <span className={styles.pill} aria-hidden="true" />
           <button
             type="button"
             className={styles.tab}
@@ -89,7 +129,9 @@ export function OrganizationDetails({
           >
             <Icon name="users" size={18} />
             <span>Organization owner</span>
-            <Icon name="arrow-right" size={14} />
+            <span className={styles.arrow}>
+              <Icon name="arrow-right" size={14} />
+            </span>
           </button>
         </div>
         <section

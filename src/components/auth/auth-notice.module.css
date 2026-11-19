@@ -1,34 +1,58 @@
 .notice {
   display: grid;
-  justify-items: start;
+  justify-items: center;
   align-content: center;
-  gap: 1rem;
-  min-block-size: 14rem;
+  gap: var(--space-6);
+  inline-size: 100%;
+  max-inline-size: 27rem;
+  min-inline-size: 0;
+  margin-inline: auto;
+  padding-block: var(--space-6);
   color: var(--ui-text);
+  text-align: center;
 }
+
+.copy {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
 .notice h1 {
-  font-size: var(--text-h2);
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  line-height: 1.2;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-heading);
 }
+
 .notice p {
-  max-inline-size: 30rem;
+  max-inline-size: 36ch;
+  margin-inline: auto;
   color: var(--ui-muted);
-  font-size: 0.9375rem;
-  line-height: 1.7;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
+
 .notice small {
+  max-inline-size: 100%;
   color: var(--ui-muted);
-  font-size: 0.75rem;
+  font-size: var(--text-caption);
   overflow-wrap: anywhere;
 }
+
 .icon {
   display: grid;
   place-items: center;
-  inline-size: 3rem;
-  block-size: 3rem;
+  inline-size: var(--space-12);
+  block-size: var(--space-12);
   border-radius: var(--radius-pill);
-  background: transparent;
+  background: var(--ui-accent);
   color: var(--ui-primary);
+}
+
+@media (forced-colors: active) {
+  .icon {
+    outline: 1px solid CanvasText;
+  }
 }

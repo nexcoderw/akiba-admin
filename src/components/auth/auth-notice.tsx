@@ -21,13 +21,17 @@ export function AuthNotice({
       aria-labelledby="session-notice-title"
       data-auth-notice
     >
-      <span className={styles.icon}>
-        <Icon name="warning" />
+      <span className={styles.icon} aria-hidden="true">
+        <Icon name="warning" size={24} />
       </span>
-      <h1 id="session-notice-title">{title}</h1>
-      <p role="status">{message}</p>
+      <div className={styles.copy}>
+        <h1 id="session-notice-title">{title}</h1>
+        <p role="status">{message}</p>
+      </div>
       <Button
         variant="secondary"
+        icon={<Icon name="refresh" />}
+        loadingLabel="Trying again…"
         onClick={onRetryAction ?? (() => window.location.reload())}
       >
         Try again

@@ -240,8 +240,9 @@ export function LoginForm({
   const methods =
     step.kind === "otp" ? (step.challenge?.methods ?? ["totp"]) : [];
   const canVerify = methods.includes(method);
-  const emailInputDisabled =
-    method === "email_otp" && (!emailDelivery || emailExpired);
+  const verifyingEmail = method === "email_otp";
+  const emailInputDisabled = verifyingEmail && (!emailDelivery || emailExpired);
+  const verificationDisabled = busy || challengeExpired || emailInputDisabled;
 
   if (
     verificationState === "verifying" ||
@@ -398,7 +399,7 @@ export function LoginForm({
           </div>
         ) : verificationState === "retry" ? (
           <div className={styles.followUp}>
-            {method === "email_otp" ? (
+            {verifyingEmail ? (
               <p>Cancel this sign-in and start again to verify your email.</p>
             ) : (
               <>
@@ -427,7 +428,7 @@ export function LoginForm({
                 This sign-in request has expired. Start again to continue.
               </p>
             )}
-            {method === "email_otp" && !challengeExpired && (
+            {verifyingEmail && !challengeExpired && (
               <div className={styles.emailDelivery}>
                 {emailDelivery && (
                   <p role="status">
@@ -449,12 +450,12 @@ export function LoginForm({
                 </Button>
               </div>
             )}
-            {(method !== "email_otp" || emailDelivery) && (
+            {(!verifyingEmail || emailDelivery) && (
               <Form
                 className={styles.form}
                 noValidate
                 onSubmitAction={async (data) => {
-                  if (busy || challengeExpired || emailInputDisabled) return;
+                  if (verificationDisabled) return;
                   clearErrorToast();
                   const raw = data.get("code");
                   const value = typeof raw === "string" ? raw.trim() : "";
@@ -494,7 +495,7 @@ export function LoginForm({
                       if (code.current) code.current.value = "";
                       setVerificationState("retry");
                       showError(
-                        method === "email_otp"
+                        verifyingEmail
                           ? "We couldn't confirm email verification."
                           : "We couldn't confirm verification. Check your session before submitting another code.",
                       );
@@ -518,11 +519,9 @@ export function LoginForm({
                     ref={code}
                     id="login-code"
                     name="code"
-                    label={
-                      method === "email_otp" ? "Email code" : "Verification code"
-                    }
+                    label={verifyingEmail ? "Email code" : "Verification code"}
                     required
-                    disabled={busy || challengeExpired || emailInputDisabled}
+                    disabled={verificationDisabled}
                     error={fields.code}
                     value={otp}
                     onValueChange={setOtp}
@@ -548,13 +547,11 @@ export function LoginForm({
                 )}
                 <Button
                   type="submit"
-                  disabled={busy || challengeExpired || emailInputDisabled}
+                  disabled={verificationDisabled}
                   fullWidth
                   icon={<Icon name="check" />}
                 >
-                  {method === "email_otp"
-                    ? "Verify email"
-                    : "Verify and continue"}
+                  {verifyingEmail ? "Verify email" : "Verify and continue"}
                 </Button>
               </Form>
             )}

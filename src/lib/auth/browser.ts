@@ -1,10 +1,13 @@
 import {
   parseChallenge,
+  parseEmailCodeDelivery,
   parseVerification,
   safeProblem,
   sessionResult,
   needsCsrf,
+  verificationBody,
   type AuthOperation,
+  type MfaMethod,
   type SafeProblem,
 } from "./contracts";
 import { cookieNames } from "./policy";
@@ -31,6 +34,7 @@ function csrfToken() {
 
 const paths: Record<AuthOperation, string> = {
   login: "/api/auth/login",
+  sendEmailCode: "/api/auth/mfa/email",
   verify: "/api/auth/verify",
   session: "/api/auth/session",
   logout: "/api/auth/logout",
@@ -129,16 +133,17 @@ export async function startLogin(email: string, password: string) {
   return result;
 }
 
-export async function verifyMfa(
-  method: "totp" | "recovery_code",
-  code: string,
-) {
-  const body =
-    method === "totp"
-      ? { method, totpCode: code }
-      : { method, recoveryCode: code };
-  const { data } = await authRequest("verify", body);
-  const result = parseVerification(data);
+export async function requestEmailCode() {
+  const { data } = await authRequest("sendEmailCode");
+  const result = parseEmailCodeDelivery(data);
+  if (!result)
+    throw new AuthRequestError(safeProblem(502, null, "sendEmailCode"));
+  return result;
+}
+
+export async function verifyMfa(method: MfaMethod, code: string) {
+  const { data } = await authRequest("verify", verificationBody(method, code));
+  const result = parseVerification(data, method);
   if (!result) throw new AuthRequestError(safeProblem(502, null, "verify"));
   return result;
 }

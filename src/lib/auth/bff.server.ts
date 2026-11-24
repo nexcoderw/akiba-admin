@@ -6,6 +6,7 @@ import { backendRequest, boundedJson, getAuthConfig } from "./backend.server";
 import {
   isRecord,
   parseChallenge,
+  parseEmailCodeDelivery,
   parseSession,
   parseVerification,
   safeProblem,
@@ -71,6 +72,7 @@ export async function handle(
     }
     const cookie = request.headers.get("cookie") ?? "";
     const incoming = platformCookies(cookie, config.secure);
+    let upstreamCookie = cookie;
     const csrf = request.headers.get("x-platform-csrf-token");
     if (needsCsrf(operation) && !csrfMatches(incoming.csrf, csrf)) {
       return problem(403, operation, { code: "ACCESS_DENIED" });
@@ -100,8 +102,8 @@ export async function handle(
       ) {
         return problem(400, operation, { code: "VALIDATION_FAILED" });
       }
-    } else if (operation === "logout") {
-      // Drain an empty POST safely; never forward caller-controlled logout input.
+    } else if (operation === "logout" || operation === "sendEmailCode") {
+      // Drain an empty POST safely; these commands accept only cookie proofs.
       if (request.body) {
         try {
           if ((await boundedJson(request, 1, true)) !== null)
@@ -110,13 +112,23 @@ export async function handle(
           return problem(400, operation);
         }
       }
+      if (operation === "sendEmailCode") {
+        const names = cookieNames(config.secure);
+        const challenge = incoming.header
+          .split("; ")
+          .find((item) => item.startsWith(`${names.challenge}=v1.`));
+        if (!challenge || !incoming.csrf) return problem(401, operation);
+        upstreamCookie = `${challenge}; ${names.csrf}=${incoming.csrf}`;
+      }
     }
     const result = await backendRequest(
       operation,
-      cookie,
+      upstreamCookie,
       input,
       csrf ?? undefined,
     );
+    if (operation === "sendEmailCode" && result.cookies.length !== 0)
+      return problem(502, operation);
     let response: Response;
     if (result.status >= 400) {
       response = problem(result.status, operation, result.body);
@@ -129,11 +141,13 @@ export async function handle(
             : parseEnrollmentState(result.body)
         : operation === "login"
           ? parseChallenge(result.body)
-          : operation === "verify"
-            ? parseVerification(result.body)
-            : operation === "session"
-              ? parseSession(result.body)
-              : null;
+          : operation === "sendEmailCode"
+            ? parseEmailCodeDelivery(result.body)
+            : operation === "verify" && validVerificationBody(input)
+              ? parseVerification(result.body, input.method)
+              : operation === "session"
+                ? parseSession(result.body)
+                : null;
       if (operation === "logout" || operation === "enrollmentCancel") {
         if (result.status !== 204) return problem(502, operation);
         const cleared = new Set(
@@ -215,6 +229,9 @@ export function login(request: Request) {
 }
 export function verify(request: Request) {
   return handle("verify", request);
+}
+export function sendEmailCode(request: Request) {
+  return handle("sendEmailCode", request);
 }
 export function session(request: Request) {
   return handle("session", request);

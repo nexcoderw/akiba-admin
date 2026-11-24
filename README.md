@@ -160,16 +160,17 @@ frontend secret or public feature flag is required. This flow still needs human 
 browser/keyboard/narrow-screen testing and a real development email round trip; no production readiness
 is claimed. Existing managed-owner/RLS and deployment release blockers remain.
 
-All browser authentication traffic is same-origin. Four fixed Next adapters contact the canonical API; no wildcard proxy or browser-visible upstream secret is introduced.
+Browser authentication traffic uses fixed same-origin Next adapters that contact the canonical API.
 
-| Browser route     | Method | Canonical API route              | Contract                                                                |
-| ----------------- | ------ | -------------------------------- | ----------------------------------------------------------------------- |
-| /api/auth/login   | POST   | /api/v1/platform/auth/login      | Email/password; MFA_REQUIRED, expiry and available methods              |
-| /api/auth/verify  | POST   | /api/v1/platform/auth/mfa/verify | Exactly one TOTP/recovery proof; authenticated or mfa_recovery_required |
-| /api/auth/session | GET    | /api/v1/platform/auth/me         | Full verified platform session; narrow safe profile returned            |
-| /api/auth/logout  | POST   | /api/v1/platform/auth/logout     | Server revocation and cookie clearing; 204 only on confirmation         |
+| Browser route       | Method | Canonical API route              | Contract                                                                             |
+| ------------------- | ------ | -------------------------------- | ------------------------------------------------------------------------------------ |
+| /api/auth/login     | POST   | /api/v1/platform/auth/login      | Email/password; MFA_REQUIRED, expiry and available methods                           |
+| /api/auth/mfa/email | POST   | /api/v1/platform/auth/mfa/email  | Empty request with pending challenge and CSRF proof; code expiry and resend guidance |
+| /api/auth/verify    | POST   | /api/v1/platform/auth/mfa/verify | Exactly one authenticator, recovery or email proof; method-specific result           |
+| /api/auth/session   | GET    | /api/v1/platform/auth/me         | Full verified platform session; narrow safe profile returned                         |
+| /api/auth/logout    | POST   | /api/v1/platform/auth/logout     | Server revocation and cookie clearing; 204 only on confirmation                      |
 
-The API sets origin-bound HttpOnly challenge/session cookies and a readable double-submit CSRF cookie. The adapters validate exact browser Origin for mutations, compare CSRF cookie/header proofs for verification/logout and send the configured Origin upstream. Session GET requires a valid Origin or same-origin Fetch Metadata. No incoming Host, forwarded host, user IDs or permission headers establish authority. Cookie attributes and response shapes are checked before forwarding. Terminal MFA cookie clearing reaches the browser. Secrets and upstream CSRF response fields are not copied into browser JSON; only the CSRF cookie is intentionally JavaScript-readable.
+The API sets origin-bound HttpOnly challenge/session cookies and a readable double-submit CSRF cookie. The adapters validate exact browser Origin for mutations, compare CSRF cookie/header proofs for email delivery, verification and logout, and send the configured Origin upstream. Session GET requires a valid Origin or same-origin Fetch Metadata. No incoming Host, forwarded host, user IDs or permission headers establish authority. Cookie attributes and response shapes are checked before forwarding. Terminal MFA cookie clearing reaches the browser. Secrets and upstream CSRF response fields are not copied into browser JSON; only the CSRF cookie is intentionally JavaScript-readable.
 
 Requests and upstream responses have bounded bodies and timeouts; redirects are rejected. API problems are mapped to safe authored messages and correlation IDs. No raw exception/detail field is displayed. Authentication content is no-store and framing/referrer protections are configured. There is no shared session cache: React.cache deduplicates only one server render.
 
@@ -179,9 +180,9 @@ Requests and upstream responses have bounded bodies and timeouts; redirects are 
 
 The login form reuses shared Input, Form, Button and Icon, including a backward-compatible trailing password-visibility action. Validation follows login limits rather than imposing a new password-creation policy. Passwords remain in native form fields only, are never trimmed or stored in React/browser persistence, and are cleared when advancing to MFA. Submission gates block repeated clicks and Enter.
 
-Password success never grants workspace access. TOTP uses the real MFA endpoint, then /me must confirm a full session before a hard navigation clears the login navigation cache. Codes are not verified locally or persisted. A refreshed pending challenge may show the authenticator form based on HttpOnly cookie presence; that presence is only a UI hint, and the backend must validate every proof. The current API has no challenge-method introspection endpoint, so recovery choices after refresh require restarting password sign-in to retrieve the real available methods. Back to sign in clears local fields/state; it does not claim to revoke the backend challenge. Subsequent login replaces the browser proof; the backend enforces expiry and consumption.
+Password success leads to verification. TOTP uses the real MFA endpoint, then `/me` must confirm a full session before a hard navigation clears the login navigation cache. The backend verifies each code and enforces challenge expiry and consumption. After refresh, a pending HttpOnly cookie can surface the authenticator form. Back to sign in clears local fields and state. A subsequent password login supersedes the previous challenge.
 
-Recovery-code verification is supported when advertised by login, but its mfa_recovery_required result never opens /. The UI explains the restriction and offers confirmed server logout. Authenticator repair/enrollment settings are outside this milestone. Email OTP is intentionally not presented as full platform authentication: the backend cannot grant full authority through that method.
+The authenticator is the default whenever available. When the API offers email verification, the admin can request a code, enter or paste it, and resend after the API cooldown. An `email_verified` result confirms mailbox access and offers a server-confirmed return to sign-in. Workspace access still requires the authenticator. Recovery-code verification returns `mfa_recovery_required` and also keeps the workspace closed. After refreshing a pending challenge, restart password sign-in to see the available email and recovery options. Email delivery uses the API's existing Resend settings and requires no admin environment variable.
 
 The (platform) route group renders a shared responsive navbar and sidebar after server-side session verification. The navbar displays the verified account name and email and uses the confirmed server logout flow. Sidebar destinations are centralized in `src/constant/navigation-links.ts`; Dashboard is the verified account landing page, while Organizations and Users currently show explicit unavailable-yet pages without implying those management features exist. The group layout centralizes session protection, and protected pages must still verify access near their data reads/actions; a layout alone is insufficient.
 

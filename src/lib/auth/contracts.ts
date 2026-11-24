@@ -232,7 +232,9 @@ export function parseChallenge(value: unknown): Challenge | null {
   };
 }
 
-export function parseEmailCodeDelivery(value: unknown): EmailCodeDelivery | null {
+export function parseEmailCodeDelivery(
+  value: unknown,
+): EmailCodeDelivery | null {
   if (
     !isRecord(value) ||
     value.status !== "sent" ||
@@ -322,7 +324,8 @@ export function validVerificationBody(
     );
   if (value.method === "email_otp")
     return (
-      typeof value.emailOtpCode === "string" && /^\d{6}$/u.test(value.emailOtpCode)
+      typeof value.emailOtpCode === "string" &&
+      /^\d{6}$/u.test(value.emailOtpCode)
     );
   return (
     value.method === "recovery_code" &&

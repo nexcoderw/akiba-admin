@@ -11,6 +11,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import {
   AuthRequestError,
   readSession,
+  requestEmailCode,
   startLogin,
   verifyMfa,
 } from "@/lib/auth/browser";
@@ -18,7 +19,10 @@ import {
   loginErrors,
   safeDestination,
   validVerificationBody,
+  verificationBody,
   type Challenge,
+  type EmailCodeDelivery,
+  type MfaMethod,
 } from "@/lib/auth/contracts";
 import { LogoutButton } from "./logout-button";
 import styles from "./login-form.module.css";
@@ -26,7 +30,25 @@ import styles from "./login-form.module.css";
 type Step = { kind: "password" } | { kind: "otp"; challenge: Challenge | null };
 
 type VerificationState =
-  "input" | "verifying" | "checking-session" | "retry" | "recovery-required";
+  | "input"
+  | "verifying"
+  | "checking-session"
+  | "retry"
+  | "recovery-required"
+  | "email-verified";
+
+const methodOptions = [
+  ["totp", "Use my authenticator"],
+  ["email_otp", "Use an email code"],
+  ["recovery_code", "Use a recovery code"],
+] as const;
+
+const methodInstructions: Record<MfaMethod, string> = {
+  totp: "Enter the six-digit code from your authenticator app.",
+  recovery_code: "Enter one of your unused recovery codes.",
+  email_otp:
+    "Verify the email address on your account. Workspace access requires your authenticator app.",
+};
 
 export function LoginForm({
   pendingOnLoad,
@@ -44,7 +66,11 @@ export function LoginForm({
     useState<VerificationState>("input");
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [method, setMethod] = useState<"totp" | "recovery_code">("totp");
+  const [method, setMethod] = useState<MfaMethod>("totp");
+  const [emailDelivery, setEmailDelivery] =
+    useState<EmailCodeDelivery | null>(null);
+  const [emailExpired, setEmailExpired] = useState(false);
+  const [resendReady, setResendReady] = useState(false);
   const [fields, setFields] = useState<{
     email?: string;
     password?: string;
@@ -73,7 +99,10 @@ export function LoginForm({
   }, [expiredSession, step.kind, toast]);
 
   useEffect(() => {
-    if (step.kind !== "password") heading.current?.focus();
+    if (step.kind === "otp") heading.current?.focus();
+  }, [step.kind, method, verificationState]);
+
+  useEffect(() => {
     if (step.kind !== "otp" || !step.challenge) return;
     const timer = window.setTimeout(
       () => setChallengeExpired(true),
@@ -86,6 +115,25 @@ export function LoginForm({
       window.clearTimeout(timer);
     };
   }, [step]);
+
+  useEffect(() => {
+    if (!emailDelivery) return;
+    const expiry = window.setTimeout(
+      () => setEmailExpired(true),
+      Math.max(
+        0,
+        Math.min(Date.parse(emailDelivery.expiresAt) - Date.now(), 2147483647),
+      ),
+    );
+    const cooldown = window.setTimeout(
+      () => setResendReady(true),
+      emailDelivery.retryAfterSeconds * 1000,
+    );
+    return () => {
+      window.clearTimeout(expiry);
+      window.clearTimeout(cooldown);
+    };
+  }, [emailDelivery]);
 
   function clearErrorToast() {
     if (errorToastId.current === undefined) return;
@@ -104,6 +152,42 @@ export function LoginForm({
         ? error.problem.message
         : "The service is temporarily unavailable. Please try again.",
     );
+  }
+
+  function changeMethod(nextMethod: MfaMethod) {
+    if (busy) return;
+    if (code.current) code.current.value = "";
+    setOtp("");
+    setFields({});
+    clearErrorToast();
+    setMethod(nextMethod);
+  }
+
+  async function sendEmailCode() {
+    if (busy || challengeExpired || (emailDelivery && !resendReady)) return;
+    clearErrorToast();
+    setBusy(true);
+    try {
+      const delivery = await requestEmailCode();
+      setOtp("");
+      setFields({});
+      setEmailExpired(false);
+      setResendReady(false);
+      setEmailDelivery(delivery);
+      requestAnimationFrame(() => code.current?.focus());
+    } catch (error: unknown) {
+      if (
+        error instanceof AuthRequestError &&
+        (error.problem.status === 0 || error.problem.status >= 500)
+      ) {
+        setEmailDelivery(null);
+        setOtp("");
+        setFields({});
+      }
+      showRequestError(error);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function confirmSession() {
@@ -142,16 +226,22 @@ export function LoginForm({
     setVisible(false);
     setChallengeExpired(false);
     setMethod("totp");
+    setEmailDelivery(null);
     setVerificationState("input");
     setStep({ kind: "password" });
   }
 
   const title =
-    step.kind === "password" ? "Welcome back" : "Verify your sign-in";
+    step.kind === "password"
+      ? "Welcome back"
+      : verificationState === "email-verified"
+        ? "Email verified"
+        : "Verify your sign-in";
   const methods =
     step.kind === "otp" ? (step.challenge?.methods ?? ["totp"]) : [];
-  const canVerify =
-    methods.includes("totp") || methods.includes("recovery_code");
+  const canVerify = methods.includes(method);
+  const emailInputDisabled =
+    method === "email_otp" && (!emailDelivery || emailExpired);
 
   if (
     verificationState === "verifying" ||
@@ -174,17 +264,22 @@ export function LoginForm({
         <h1 ref={heading} tabIndex={-1}>
           {title}
         </h1>
-        <p>
-          {step.kind === "password"
-            ? "Sign in to your Akiba administration workspace."
-            : verificationState === "recovery-required"
-              ? "Your recovery proof was accepted, but authenticator recovery must be completed before you can continue."
-              : verificationState === "retry"
-                ? "Your verification was received. Confirm your platform session before continuing."
-                : method === "totp"
-                  ? "Enter the six-digit code from your authenticator app."
-                  : "Enter one of your unused recovery codes."}
-        </p>
+        {verificationState !== "email-verified" && (
+          <p>
+            {step.kind === "password"
+              ? "Sign in to your Akiba administration workspace."
+              : verificationState === "recovery-required"
+                ? "Your recovery proof was accepted, but authenticator recovery must be completed before you can continue."
+                : verificationState === "retry"
+                  ? "We couldn't confirm the result of your verification."
+                  : methodInstructions[method]}
+          </p>
+        )}
+        {step.kind === "otp" &&
+          step.challenge === null &&
+          verificationState === "input" && (
+            <p>Start sign-in again to see your other verification options.</p>
+          )}
       </header>
       {step.kind === "password" && (
         <Form
@@ -216,8 +311,13 @@ export function LoginForm({
               if (password.current) password.current.value = "";
               setVisible(false);
               setChallengeExpired(false);
+              const preferredMethod = challenge.methods.includes("totp")
+                ? "totp"
+                : "recovery_code";
               setMethod(
-                challenge.methods.includes("totp") ? "totp" : "recovery_code",
+                challenge.methods.includes(preferredMethod)
+                  ? preferredMethod
+                  : "email_otp",
               );
               setVerificationState("input");
               setStep({ kind: "otp", challenge });
@@ -278,7 +378,16 @@ export function LoginForm({
         </Form>
       )}
       {step.kind === "otp" &&
-        (verificationState === "recovery-required" ? (
+        (verificationState === "email-verified" ? (
+          <div className={styles.followUp}>
+            <p>
+              Sign in again with your authenticator app to open the workspace.
+              If you lost access to your app, use a saved recovery code or
+              contact your platform administrator.
+            </p>
+            <LogoutButton label="Return to sign in" fullWidth />
+          </div>
+        ) : verificationState === "recovery-required" ? (
           <div className={styles.followUp}>
             <p>
               Authenticator repair is not available in this frontend milestone.
@@ -289,17 +398,21 @@ export function LoginForm({
           </div>
         ) : verificationState === "retry" ? (
           <div className={styles.followUp}>
-            <p>
-              Check your session before submitting another verification code.
-            </p>
-            <Button
-              fullWidth
-              pending={busy}
-              onClick={retrySessionCheck}
-              icon={<Icon name="check" />}
-            >
-              Check session
-            </Button>
+            {method === "email_otp" ? (
+              <p>Cancel this sign-in and start again to verify your email.</p>
+            ) : (
+              <>
+                <p>Check your session before submitting another code.</p>
+                <Button
+                  fullWidth
+                  pending={busy}
+                  onClick={retrySessionCheck}
+                  icon={<Icon name="check" />}
+                >
+                  Check session
+                </Button>
+              </>
+            )}
             <LogoutButton
               label="Cancel sign in"
               disabled={busy}
@@ -314,124 +427,151 @@ export function LoginForm({
                 This sign-in request has expired. Start again to continue.
               </p>
             )}
-            <Form
-              className={styles.form}
-              noValidate
-              onSubmitAction={async (data) => {
-                clearErrorToast();
-                const raw = data.get("code");
-                const value = typeof raw === "string" ? raw.trim() : "";
-                const body =
-                  method === "totp"
-                    ? { method, totpCode: value }
-                    : { method, recoveryCode: value };
-                if (!validVerificationBody(body)) {
-                  setFields({
-                    code:
-                      method === "totp"
-                        ? "Enter a six-digit verification code."
-                        : "Enter a valid recovery code, including its hyphens.",
-                  });
-                  code.current?.focus();
-                  return;
-                }
-                if (challengeExpired) return;
-                setFields({});
-                setBusy(true);
-                if (code.current) code.current.value = "";
-                setOtp("");
-                setVerificationState("verifying");
-                try {
-                  const verified = await verifyMfa(method, value);
-                  if (verified.status === "mfa_recovery_required") {
-                    setVerificationState("recovery-required");
+            {method === "email_otp" && !challengeExpired && (
+              <div className={styles.emailDelivery}>
+                {emailDelivery && (
+                  <p role="status">
+                    {emailExpired
+                      ? "This email code has expired. Request a new code to continue."
+                      : "We sent a code to your verified email address. Use the newest code in your inbox."}
+                    {!resendReady &&
+                      ` You can request another code after ${emailDelivery.retryAfterSeconds} seconds.`}
+                  </p>
+                )}
+                <Button
+                  variant={emailDelivery ? "secondary" : "primary"}
+                  fullWidth
+                  disabled={busy || (emailDelivery !== null && !resendReady)}
+                  loadingLabel="Sending code…"
+                  onClick={sendEmailCode}
+                >
+                  {emailDelivery ? "Resend email code" : "Send email code"}
+                </Button>
+              </div>
+            )}
+            {(method !== "email_otp" || emailDelivery) && (
+              <Form
+                className={styles.form}
+                noValidate
+                onSubmitAction={async (data) => {
+                  if (busy || challengeExpired || emailInputDisabled) return;
+                  clearErrorToast();
+                  const raw = data.get("code");
+                  const value = typeof raw === "string" ? raw.trim() : "";
+                  const body = verificationBody(method, value);
+                  if (!validVerificationBody(body)) {
+                    setFields({
+                      code:
+                        method === "recovery_code"
+                          ? "Enter a valid recovery code, including its hyphens."
+                          : "Enter a six-digit verification code.",
+                    });
+                    code.current?.focus();
                     return;
                   }
-                  await confirmSession();
-                } catch (error: unknown) {
-                  if (
-                    error instanceof AuthRequestError &&
-                    (error.problem.status === 0 || error.problem.status >= 500)
-                  ) {
-                    if (code.current) code.current.value = "";
-                    setVerificationState("retry");
-                    showError(
-                      "We couldn't confirm verification. Check your session before submitting another code.",
-                    );
-                  } else {
-                    setVerificationState("input");
-                    showRequestError(error);
-                    if (method === "totp") {
-                      // Clear the rejected code and return focus so retyping is immediate.
-                      setOtp("");
-                      requestAnimationFrame(() => code.current?.focus());
+                  setFields({});
+                  setBusy(true);
+                  if (code.current) code.current.value = "";
+                  setOtp("");
+                  setVerificationState("verifying");
+                  try {
+                    const verified = await verifyMfa(method, value);
+                    if (verified.status === "email_verified") {
+                      setEmailDelivery(null);
+                      setVerificationState("email-verified");
+                      return;
                     }
-                  }
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              {method === "totp" ? (
-                <OtpInput
-                  key="totp"
-                  ref={code}
-                  id="login-code"
-                  name="code"
-                  label="Verification code"
-                  required
-                  disabled={challengeExpired}
-                  error={fields.code}
-                  value={otp}
-                  onValueChange={setOtp}
-                />
-              ) : (
-                <Input
-                  key="recovery_code"
-                  ref={code}
-                  id="login-code"
-                  name="code"
-                  label="Recovery code"
-                  autoComplete="one-time-code"
-                  inputMode="text"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  maxLength={64}
-                  required
-                  disabled={challengeExpired}
-                  icon={<Icon name="lock" />}
-                  error={fields.code}
-                  placeholder="XXXX-XXXX-…"
-                />
-              )}
-              <Button
-                type="submit"
-                disabled={challengeExpired}
-                fullWidth
-                icon={<Icon name="check" />}
-              >
-                Verify and continue
-              </Button>
-            </Form>
-            <div className={styles.secondaryActions}>
-              {methods.includes("totp") &&
-                methods.includes("recovery_code") && (
-                  <button
-                    type="button"
-                    className={styles.link}
-                    disabled={busy}
-                    onClick={() => {
+                    if (verified.status === "mfa_recovery_required") {
+                      setVerificationState("recovery-required");
+                      return;
+                    }
+                    await confirmSession();
+                  } catch (error: unknown) {
+                    if (
+                      error instanceof AuthRequestError &&
+                      (error.problem.status === 0 || error.problem.status >= 500)
+                    ) {
                       if (code.current) code.current.value = "";
-                      setOtp("");
-                      setMethod(method === "totp" ? "recovery_code" : "totp");
-                      setFields({});
-                      clearErrorToast();
-                    }}
-                  >
-                    {method === "totp"
-                      ? "Use a recovery code"
-                      : "Use my authenticator"}
-                  </button>
+                      setVerificationState("retry");
+                      showError(
+                        method === "email_otp"
+                          ? "We couldn't confirm email verification."
+                          : "We couldn't confirm verification. Check your session before submitting another code.",
+                      );
+                    } else {
+                      setVerificationState("input");
+                      showRequestError(error);
+                      if (method !== "recovery_code") {
+                        // Clear the rejected code and return focus so retyping is immediate.
+                        setOtp("");
+                        requestAnimationFrame(() => code.current?.focus());
+                      }
+                    }
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {method !== "recovery_code" ? (
+                  <OtpInput
+                    key={method}
+                    ref={code}
+                    id="login-code"
+                    name="code"
+                    label={
+                      method === "email_otp" ? "Email code" : "Verification code"
+                    }
+                    required
+                    disabled={busy || challengeExpired || emailInputDisabled}
+                    error={fields.code}
+                    value={otp}
+                    onValueChange={setOtp}
+                  />
+                ) : (
+                  <Input
+                    key="recovery_code"
+                    ref={code}
+                    id="login-code"
+                    name="code"
+                    label="Recovery code"
+                    autoComplete="one-time-code"
+                    inputMode="text"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    maxLength={64}
+                    required
+                    disabled={challengeExpired}
+                    icon={<Icon name="lock" />}
+                    error={fields.code}
+                    placeholder="XXXX-XXXX-…"
+                  />
+                )}
+                <Button
+                  type="submit"
+                  disabled={busy || challengeExpired || emailInputDisabled}
+                  fullWidth
+                  icon={<Icon name="check" />}
+                >
+                  {method === "email_otp"
+                    ? "Verify email"
+                    : "Verify and continue"}
+                </Button>
+              </Form>
+            )}
+            <div className={styles.secondaryActions}>
+              {!challengeExpired &&
+                methodOptions.map(([item, label]) =>
+                  item !== method && methods.includes(item) ? (
+                    <button
+                      key={item}
+                      type="button"
+                      className={styles.link}
+                      disabled={busy}
+                      onClick={() => changeMethod(item)}
+                    >
+                      {label}
+                    </button>
+                  ) : null,
                 )}
               <button
                 type="button"

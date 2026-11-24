@@ -3,7 +3,9 @@ import test from "node:test";
 import {
   AUTH_PATHS,
   loginErrors,
+  needsCsrf,
   parseChallenge,
+  parseEmailCodeDelivery,
   parseSession,
   parseVerification,
   safeDestination,
@@ -11,6 +13,7 @@ import {
   sessionResult,
   validLoginBody,
   validVerificationBody,
+  verificationBody,
 } from "../src/lib/auth/contracts.ts";
 import {
   approvedSetCookies,
@@ -49,6 +52,7 @@ test("CSRF verification requires a correctly formatted matching cookie and heade
 test("backend adapters use the actual four platform authentication endpoints", () => {
   assert.deepEqual(AUTH_PATHS, {
     login: "/api/v1/platform/auth/login",
+    sendEmailCode: "/api/v1/platform/auth/mfa/email",
     verify: "/api/v1/platform/auth/mfa/verify",
     session: "/api/v1/platform/auth/me",
     logout: "/api/v1/platform/auth/logout",
@@ -111,10 +115,45 @@ test("mixed MFA proofs, bearer challenges and unsupported methods are rejected",
     { method: "totp", totpCode: "12345" },
     { method: "totp", totpCode: "123456", recoveryCode: token },
     { method: "totp", totpCode: "123456", challengeToken: token },
-    { method: "email_otp", emailOtpCode: "123456" },
+    { method: "email_otp", totpCode: "123456" },
+    { method: "email_otp", emailOtpCode: "123456", totpCode: "654321" },
+    { method: "email_otp", emailOtpCode: 123456 },
     { method: "totp", totpCode: 123456 },
   ])
     assert.equal(validVerificationBody(input), false);
+});
+
+test("email delivery is a CSRF-protected command with bounded retry guidance", () => {
+  const delivery = { status: "sent", expiresAt: expiry, retryAfterSeconds: 60 };
+  assert.equal(needsCsrf("sendEmailCode"), true);
+  assert.deepEqual(
+    parseEmailCodeDelivery({ ...delivery, recipient: "private" }),
+    delivery,
+  );
+  for (const retryAfterSeconds of [0, 301, 1.5, "60"])
+    assert.equal(
+      parseEmailCodeDelivery({ ...delivery, retryAfterSeconds }),
+      null,
+    );
+  assert.equal(
+    parseEmailCodeDelivery({ ...delivery, expiresAt: "invalid" }),
+    null,
+  );
+});
+
+test("email verification accepts leading zeros and remains restricted", () => {
+  const proof = verificationBody("email_otp", "012345");
+  assert.deepEqual(proof, { method: "email_otp", emailOtpCode: "012345" });
+  assert.equal(validVerificationBody(proof), true);
+
+  const response = { status: "email_verified", expiresAt: expiry };
+  assert.deepEqual(parseVerification(response, "email_otp"), response);
+  assert.equal(parseSession(response), null);
+  assert.equal(parseVerification(response, "totp"), null);
+  assert.equal(
+    parseVerification({ ...response, status: "authenticated" }, "email_otp"),
+    null,
+  );
 });
 
 test("the verified recovery-code format is supported without TOTP substitution", () => {
@@ -169,11 +208,10 @@ test("malformed challenges cannot advance the UI", () => {
 });
 
 test("recovery verification stays restricted and does not become a session", () => {
-  const result = parseVerification({
-    status: "mfa_recovery_required",
-    expiresAt: expiry,
-    csrfToken: token,
-  });
+  const result = parseVerification(
+    { status: "mfa_recovery_required", expiresAt: expiry, csrfToken: token },
+    "recovery_code",
+  );
   assert.deepEqual(result, {
     status: "mfa_recovery_required",
     expiresAt: expiry,
@@ -182,13 +220,13 @@ test("recovery verification stays restricted and does not become a session", () 
 });
 
 test("full MFA response still requires the separate session endpoint", () => {
-  const result = parseVerification({
-    status: "authenticated",
-    expiresAt: expiry,
-  });
+  const result = parseVerification(
+    { status: "authenticated", expiresAt: expiry },
+    "totp",
+  );
   assert.equal(parseSession(result), null);
   assert.equal(
-    parseVerification({ status: "success", expiresAt: expiry }),
+    parseVerification({ status: "success", expiresAt: expiry }, "totp"),
     null,
   );
 });

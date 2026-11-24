@@ -67,8 +67,9 @@ export function LoginForm({
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [method, setMethod] = useState<MfaMethod>("totp");
-  const [emailDelivery, setEmailDelivery] =
-    useState<EmailCodeDelivery | null>(null);
+  const [emailDelivery, setEmailDelivery] = useState<EmailCodeDelivery | null>(
+    null,
+  );
   const [emailExpired, setEmailExpired] = useState(false);
   const [resendReady, setResendReady] = useState(false);
   const [fields, setFields] = useState<{
@@ -490,7 +491,8 @@ export function LoginForm({
                   } catch (error: unknown) {
                     if (
                       error instanceof AuthRequestError &&
-                      (error.problem.status === 0 || error.problem.status >= 500)
+                      (error.problem.status === 0 ||
+                        error.problem.status >= 500)
                     ) {
                       if (code.current) code.current.value = "";
                       setVerificationState("retry");

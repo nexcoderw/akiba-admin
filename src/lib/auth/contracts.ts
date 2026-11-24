@@ -15,8 +15,14 @@ export interface Challenge {
 }
 
 export interface Verification {
-  status: "authenticated" | "mfa_recovery_required";
+  status: "authenticated" | "mfa_recovery_required" | "email_verified";
   expiresAt: string;
+}
+
+export interface EmailCodeDelivery {
+  status: "sent";
+  expiresAt: string;
+  retryAfterSeconds: number;
 }
 
 export interface SafeProblem {
@@ -34,6 +40,7 @@ export type SessionResult =
 
 export const AUTH_PATHS = {
   login: "/api/v1/platform/auth/login",
+  sendEmailCode: "/api/v1/platform/auth/mfa/email",
   verify: "/api/v1/platform/auth/mfa/verify",
   session: "/api/v1/platform/auth/me",
   logout: "/api/v1/platform/auth/logout",
@@ -58,6 +65,7 @@ export function isEnrollment(operation: AuthOperation): boolean {
 export function needsCsrf(operation: AuthOperation): boolean {
   return (
     operation === "verify" ||
+    operation === "sendEmailCode" ||
     operation === "logout" ||
     (isEnrollment(operation) && operation !== "enrollmentExchange")
   );
@@ -224,15 +232,42 @@ export function parseChallenge(value: unknown): Challenge | null {
   };
 }
 
-export function parseVerification(value: unknown): Verification | null {
+export function parseEmailCodeDelivery(value: unknown): EmailCodeDelivery | null {
   if (
     !isRecord(value) ||
-    (value.status !== "authenticated" &&
-      value.status !== "mfa_recovery_required") ||
+    value.status !== "sent" ||
+    !validExpiry(value.expiresAt) ||
+    typeof value.retryAfterSeconds !== "number" ||
+    !Number.isInteger(value.retryAfterSeconds) ||
+    value.retryAfterSeconds < 1 ||
+    value.retryAfterSeconds > 300
+  )
+    return null;
+  return {
+    status: value.status,
+    expiresAt: value.expiresAt,
+    retryAfterSeconds: value.retryAfterSeconds,
+  };
+}
+
+const verificationStatuses = {
+  totp: "authenticated",
+  recovery_code: "mfa_recovery_required",
+  email_otp: "email_verified",
+} as const;
+
+export function parseVerification(
+  value: unknown,
+  method: MfaMethod,
+): Verification | null {
+  const status = verificationStatuses[method];
+  if (
+    !isRecord(value) ||
+    value.status !== status ||
     !validExpiry(value.expiresAt)
   )
     return null;
-  return { status: value.status, expiresAt: value.expiresAt };
+  return { status, expiresAt: value.expiresAt };
 }
 
 /** Only the existing account landing route is eligible; expand with verified route permissions. */
@@ -278,11 +313,16 @@ export function validVerificationBody(
   value: unknown,
 ): value is
   | { method: "totp"; totpCode: string }
+  | { method: "email_otp"; emailOtpCode: string }
   | { method: "recovery_code"; recoveryCode: string } {
   if (!isRecord(value) || Object.keys(value).length !== 2) return false;
   if (value.method === "totp")
     return (
       typeof value.totpCode === "string" && /^\d{6}$/u.test(value.totpCode)
+    );
+  if (value.method === "email_otp")
+    return (
+      typeof value.emailOtpCode === "string" && /^\d{6}$/u.test(value.emailOtpCode)
     );
   return (
     value.method === "recovery_code" &&
@@ -290,6 +330,17 @@ export function validVerificationBody(
     value.recoveryCode.length <= 64 &&
     /^(?:[A-Fa-f0-9]{4}-){7}[A-Fa-f0-9]{4}$/u.test(value.recoveryCode)
   );
+}
+
+export function verificationBody(method: MfaMethod, code: string) {
+  switch (method) {
+    case "totp":
+      return { method, totpCode: code };
+    case "email_otp":
+      return { method, emailOtpCode: code };
+    case "recovery_code":
+      return { method, recoveryCode: code };
+  }
 }
 
 export function safeProblem(
@@ -362,6 +413,17 @@ export function safeProblem(
     message = "Complete the required security verification before continuing.";
   if (status === 429)
     message = "Too many attempts. Please wait before trying again.";
+  if (operation === "sendEmailCode") {
+    if (status === 401)
+      message =
+        "Email verification is unavailable for this request. Start sign-in again.";
+    if (status === 429)
+      message =
+        "Please wait before requesting another code. If you reached the send limit, start sign-in again.";
+    if (status >= 500)
+      message =
+        "We couldn't confirm that the email was sent. Wait before requesting another code, or choose another verification method.";
+  }
   if (isEnrollment(operation) && status === 401)
     message =
       "The code or enrollment request is invalid or has expired. Use a current code, or ask your operator for a new enrollment email.";

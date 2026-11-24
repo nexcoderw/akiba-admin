@@ -162,13 +162,13 @@ is claimed. Existing managed-owner/RLS and deployment release blockers remain.
 
 Browser authentication traffic uses fixed same-origin Next adapters that contact the canonical API.
 
-| Browser route     | Method | Canonical API route              | Contract                                                                |
-| ----------------- | ------ | -------------------------------- | ----------------------------------------------------------------------- |
-| /api/auth/login   | POST   | /api/v1/platform/auth/login      | Email/password; MFA_REQUIRED, expiry and available methods              |
-| /api/auth/mfa/email | POST | /api/v1/platform/auth/mfa/email  | Empty request with pending challenge and CSRF proof; code expiry and resend guidance |
-| /api/auth/verify  | POST   | /api/v1/platform/auth/mfa/verify | Exactly one authenticator, recovery or email proof; method-specific result |
-| /api/auth/session | GET    | /api/v1/platform/auth/me         | Full verified platform session; narrow safe profile returned            |
-| /api/auth/logout  | POST   | /api/v1/platform/auth/logout     | Server revocation and cookie clearing; 204 only on confirmation         |
+| Browser route       | Method | Canonical API route              | Contract                                                                             |
+| ------------------- | ------ | -------------------------------- | ------------------------------------------------------------------------------------ |
+| /api/auth/login     | POST   | /api/v1/platform/auth/login      | Email/password; MFA_REQUIRED, expiry and available methods                           |
+| /api/auth/mfa/email | POST   | /api/v1/platform/auth/mfa/email  | Empty request with pending challenge and CSRF proof; code expiry and resend guidance |
+| /api/auth/verify    | POST   | /api/v1/platform/auth/mfa/verify | Exactly one authenticator, recovery or email proof; method-specific result           |
+| /api/auth/session   | GET    | /api/v1/platform/auth/me         | Full verified platform session; narrow safe profile returned                         |
+| /api/auth/logout    | POST   | /api/v1/platform/auth/logout     | Server revocation and cookie clearing; 204 only on confirmation                      |
 
 The API sets origin-bound HttpOnly challenge/session cookies and a readable double-submit CSRF cookie. The adapters validate exact browser Origin for mutations, compare CSRF cookie/header proofs for email delivery, verification and logout, and send the configured Origin upstream. Session GET requires a valid Origin or same-origin Fetch Metadata. No incoming Host, forwarded host, user IDs or permission headers establish authority. Cookie attributes and response shapes are checked before forwarding. Terminal MFA cookie clearing reaches the browser. Secrets and upstream CSRF response fields are not copied into browser JSON; only the CSRF cookie is intentionally JavaScript-readable.
 

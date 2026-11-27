@@ -43,15 +43,18 @@ export function OrganizationOwnerInvitations({
   organization,
   permissions,
   disabled = false,
+  headingLevel = 3,
   onInteractionChange,
 }: {
   organization: Organization;
   permissions: string[];
   disabled?: boolean;
+  headingLevel?: 2 | 3;
   onInteractionChange?: (open: boolean) => void;
 }) {
   const router = useRouter();
   const toast = useToast();
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const id = useId();
   const sequence = useRef(0);
   const locked = useRef(false);
@@ -256,7 +259,12 @@ export function OrganizationOwnerInvitations({
     });
   }
 
-  if (!canRead) return null;
+  if (!canRead)
+    return (
+      <p className={styles.note}>
+        You don&apos;t have permission to view owner invitations.
+      </p>
+    );
   const canCreate =
     page !== null &&
     ownerInvitationAvailability(organization.status, permissions).create;
@@ -268,9 +276,13 @@ export function OrganizationOwnerInvitations({
             <Icon name="users" />
           </span>
           <div className={styles.headingCopy}>
-            <h3 id={`${id}-title`} tabIndex={-1}>
+            <Heading
+              id={`${id}-title`}
+              className={styles.headingTitle}
+              tabIndex={-1}
+            >
               Owner invitations
-            </h3>
+            </Heading>
             <p className={styles.note}>
               Invitation records show the intended recipient. Verified owner
               identity, enrollment progress and MFA readiness are not available

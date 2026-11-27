@@ -482,21 +482,17 @@ live database isolation, provider delivery or browser accessibility. Manually ch
 modal cancellation/Escape, focus restoration, repeated Enter/clicks, narrow/high-zoom layouts,
 filtered navigation, expiration and concurrent administration before approval.
 
-### Organization details tabs and owner sheet
+### Organization details and owner dialogs
 
 The directory details dialog separates Organization details and Organization owner into
 independent components. Compact, content-sized controls look like tabs and use native
 button keyboard behavior. Organization details remains visible; selecting Organization
-owner immediately opens a right-side sheet without an intermediate owner panel.
-Invitation data is fetched only when that sheet
-is mounted, and is discarded when it closes. The direct detail page uses the same owner
-entry point. Recipient cards group identity, invitation status, delivery, lifecycle dates
-and eligible actions without presenting invitation recipients as verified account owners.
+owner opens the centered Organization owner dialog directly. Invitation data loads when the
+dialog opens and is discarded when it closes. The direct detail page uses the same dialog.
+Recipient cards show the invitation identity, status, delivery, dates and available actions.
 
-Owner creation, delivery confirmation and revocation also use the shared dialog's sheet
-presentation. The existing permission checks, request guards, uncertain-outcome recovery,
-focus restoration and protected pending states remain in place. Parent dialogs cannot
-be dismissed during nested actions. Sheets fill the height, use an independently scrolling
-body, remain within narrow viewports, and respect reduced motion. Browser verification is
-still required for keyboard controls, nested sheets, Escape/cancellation, focus restoration,
-mobile layouts and blocked dismissal during writes.
+The initial invitation form owns its fields and validation in a separate centered dialog.
+Creating a record makes the delivery request available as a separate action. Delivery and
+revocation use their own confirmation prompts. Pending requests prevent dismissal, and the
+dialog body scrolls within the viewport on narrow screens. Verify keyboard navigation, Escape,
+focus restoration, narrow layouts and dismissal during pending writes in the browser.

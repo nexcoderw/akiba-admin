@@ -12,6 +12,8 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
+import { subscribeToDialogLayer } from "./dialog";
 import { Icon, type IconName } from "./icon";
 import styles from "./toast.module.css";
 
@@ -67,9 +69,25 @@ function serverVisibility() {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
   const [announcement, setAnnouncement] = useState<ToastRecord | null>(null);
+  const [host, setHost] = useState<HTMLDivElement | null>(null);
   const sequence = useRef(0);
   const viewportRef = useRef<HTMLElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  const attachHost = useCallback((anchor: HTMLDivElement | null) => {
+    if (!anchor) return;
+    // Reparent one host so dialog changes preserve toast state and timers.
+    const viewport = anchor.ownerDocument.createElement("div");
+    const unsubscribe = subscribeToDialogLayer((dialog) => {
+      const parent = dialog ?? anchor;
+      if (viewport.parentElement !== parent) parent.append(viewport);
+    });
+    setHost(viewport);
+    return () => {
+      unsubscribe();
+      viewport.remove();
+    };
+  }, []);
 
   const dismiss = useCallback((id: number) => {
     const focused = viewportRef.current
@@ -127,42 +145,47 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [show, dismiss],
   );
 
+  const viewport = (
+    <section
+      ref={viewportRef}
+      aria-label="Notifications"
+      className={styles.viewport}
+      onFocusCapture={(event) => {
+        if (
+          event.relatedTarget instanceof HTMLElement &&
+          !event.currentTarget.contains(event.relatedTarget)
+        ) {
+          returnFocusRef.current = event.relatedTarget;
+        }
+      }}
+    >
+      <p role="status" aria-atomic="true" className={styles.srOnly}>
+        {announcement && announcement.tone !== "error" && (
+          <span key={announcement.id}>
+            {announcement.tone}: {announcement.title} {announcement.message}
+          </span>
+        )}
+      </p>
+      <p role="alert" aria-atomic="true" className={styles.srOnly}>
+        {announcement?.tone === "error" && (
+          <span key={announcement.id}>
+            Error: {announcement.title} {announcement.message}
+          </span>
+        )}
+      </p>
+      <ol className={styles.list}>
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
+        ))}
+      </ol>
+    </section>
+  );
+
   return (
     <ToastContext value={api}>
       {children}
-      <section
-        ref={viewportRef}
-        aria-label="Notifications"
-        className={styles.viewport}
-        onFocusCapture={(event) => {
-          if (
-            event.relatedTarget instanceof HTMLElement &&
-            !event.currentTarget.contains(event.relatedTarget)
-          ) {
-            returnFocusRef.current = event.relatedTarget;
-          }
-        }}
-      >
-        <p role="status" aria-atomic="true" className={styles.srOnly}>
-          {announcement && announcement.tone !== "error" && (
-            <span key={announcement.id}>
-              {announcement.tone}: {announcement.title} {announcement.message}
-            </span>
-          )}
-        </p>
-        <p role="alert" aria-atomic="true" className={styles.srOnly}>
-          {announcement?.tone === "error" && (
-            <span key={announcement.id}>
-              Error: {announcement.title} {announcement.message}
-            </span>
-          )}
-        </p>
-        <ol className={styles.list}>
-          {toasts.map((toast) => (
-            <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
-          ))}
-        </ol>
-      </section>
+      <div ref={attachHost} />
+      {host && createPortal(viewport, host)}
     </ToastContext>
   );
 }

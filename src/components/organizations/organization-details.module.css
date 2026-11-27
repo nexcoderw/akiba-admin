@@ -109,7 +109,7 @@
   flex-shrink: 0;
 }
 
-.tab > span:not(.arrow) {
+.tab > span {
   min-inline-size: 0;
   overflow-wrap: anywhere;
 }
@@ -119,7 +119,7 @@
 }
 
 /* Works without JS: the active tab paints its own pill. */
-.tab[data-active="true"] {
+.tab[aria-selected="true"] {
   border-color: var(--brand-200);
   background: var(--ui-surface);
   color: var(--ui-primary);
@@ -128,25 +128,15 @@
 }
 
 /* Once the sliding pill is placed, it paints the active background instead. */
-.navigation[data-placed] .tab[data-active="true"] {
+.navigation[data-placed] .tab[aria-selected="true"] {
   border-color: transparent;
   background: transparent;
   box-shadow: none;
 }
 
-.tab:hover:not(:disabled):not([data-active="true"]) {
+.tab:hover:not(:disabled):not([aria-selected="true"]) {
   background: var(--ui-accent);
   color: var(--ui-primary);
-}
-
-/* Small arrow cue that nudges forward on hover. */
-.arrow {
-  display: inline-flex;
-  transition: transform 260ms var(--motion-ease);
-}
-
-.tab:hover:not(:disabled) .arrow {
-  transform: translateX(3px);
 }
 
 .tab:focus-visible,
@@ -207,13 +197,11 @@
   }
 
   .tab,
-  .arrow,
   .navigation[data-ready] .pill {
     transition: none;
   }
 
-  .tab:active:not(:disabled),
-  .tab:hover:not(:disabled) .arrow {
+  .tab:active:not(:disabled) {
     transform: none;
   }
 }
@@ -234,8 +222,8 @@
     color: CanvasText;
   }
 
-  .tab[data-active="true"],
-  .navigation[data-placed] .tab[data-active="true"] {
+  .tab[aria-selected="true"],
+  .navigation[data-placed] .tab[aria-selected="true"] {
     border-color: Highlight;
     background: Canvas;
   }

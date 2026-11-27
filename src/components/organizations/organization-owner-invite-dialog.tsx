@@ -92,7 +92,9 @@ export function OrganizationOwnerInviteDialog({
           maxLength={254}
           disabled={pending}
           error={fields.email}
-          onChange={() => setFields((value) => ({ ...value, email: undefined }))}
+          onChange={() =>
+            setFields((value) => ({ ...value, email: undefined }))
+          }
         />
         {error && (
           <p className={styles.error} role="alert">

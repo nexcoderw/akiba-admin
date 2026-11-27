@@ -1,13 +1,19 @@
 "use client";
 
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import {
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Button } from "@/components/shared/button";
 import { Dialog } from "@/components/shared/dialog";
 import { Icon } from "@/components/shared/icon";
 import { OWNER_PERMISSIONS } from "@/lib/organizations/owner-invitations";
 import type { Organization } from "@/lib/organizations/contracts";
 import { OrganizationOverview } from "./organization-overview";
-import { OrganizationOwnerDialog } from "./organization-owner-dialog";
+import { OrganizationOwnerInvitations } from "./organization-owner-invitations";
 import styles from "./organization-details.module.css";
 
 export function OrganizationDetails({
@@ -27,11 +33,35 @@ export function OrganizationDetails({
 }) {
   const id = useId();
   const [busy, setBusy] = useState(false);
-  const [ownerTrigger, setOwnerTrigger] = useState<HTMLElement | null>(null);
+  const [tab, setTab] = useState<"details" | "owner">("details");
   const navigationRef = useRef<HTMLDivElement>(null);
-  const locked = busy || ownerTrigger !== null;
-  const ownerOpen = ownerTrigger !== null;
+  const detailsTab = useRef<HTMLButtonElement>(null);
+  const ownerTab = useRef<HTMLButtonElement>(null);
   const canReadOwner = permissions.includes(OWNER_PERMISSIONS.read);
+  const ownerSelected = canReadOwner && tab === "owner";
+
+  function moveTabFocus(event: KeyboardEvent<HTMLButtonElement>) {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+      return;
+    }
+    const first = detailsTab.current;
+    const last = canReadOwner ? ownerTab.current : first;
+    switch (event.key) {
+      case "Home":
+        first?.focus();
+        break;
+      case "End":
+        last?.focus();
+        break;
+      case "ArrowLeft":
+      case "ArrowRight":
+        (event.currentTarget === first ? last : first)?.focus();
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+  }
 
   // Slides one shared pill under the active tab. Positions are written straight
   // to CSS variables, so there is no extra render and no layout flash.
@@ -41,7 +71,7 @@ export function OrganizationDetails({
 
     function place() {
       const active = navigation?.querySelector<HTMLElement>(
-        '[data-active="true"]',
+        '[aria-selected="true"]',
       );
       if (!navigation || !active) return;
       navigation.style.setProperty("--pill-x", `${active.offsetLeft}px`);
@@ -62,7 +92,7 @@ export function OrganizationDetails({
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [ownerOpen]);
+  }, [ownerSelected]);
 
   return (
     <Dialog
@@ -77,7 +107,7 @@ export function OrganizationDetails({
       size="large"
       returnFocus={returnFocus}
       onClose={onClose}
-      dismissible={!locked}
+      dismissible={!busy}
       footer={
         onEdit ? (
           <Button
@@ -86,7 +116,7 @@ export function OrganizationDetails({
             icon={<Icon name="text" />}
             aria-label="Edit organization"
             onClick={onEdit}
-            disabled={locked}
+            disabled={busy}
           >
             Edit
           </Button>
@@ -97,65 +127,84 @@ export function OrganizationDetails({
         <div
           ref={navigationRef}
           className={styles.navigation}
-          role="group"
+          role="tablist"
           aria-label="Organization views"
         >
           <span className={styles.pill} aria-hidden="true" />
           <button
+            ref={detailsTab}
+            id={`${id}-details-tab`}
             type="button"
             className={styles.tab}
-            data-active={ownerTrigger === null}
-            aria-pressed={ownerTrigger === null}
+            role="tab"
+            aria-selected={!ownerSelected}
             aria-controls={`${id}-details`}
-            disabled={locked}
-            onClick={() => document.getElementById(`${id}-details`)?.focus()}
+            tabIndex={ownerSelected ? -1 : 0}
+            disabled={busy}
+            onClick={() => setTab("details")}
+            onKeyDown={moveTabFocus}
+            data-autofocus
           >
             <Icon name="building" size={18} />
             <span>Organization details</span>
           </button>
           <button
+            ref={ownerTab}
+            id={`${id}-owner-tab`}
             type="button"
             className={styles.tab}
-            data-active={ownerTrigger !== null}
-            aria-haspopup="dialog"
-            aria-expanded={ownerTrigger !== null}
-            disabled={locked || !canReadOwner}
+            role="tab"
+            aria-selected={ownerSelected}
+            aria-controls={`${id}-owner`}
+            tabIndex={ownerSelected ? 0 : -1}
+            disabled={busy || !canReadOwner}
             title={
               canReadOwner
                 ? undefined
                 : "You don't have permission to view owner invitations."
             }
-            onClick={(event) => setOwnerTrigger(event.currentTarget)}
+            onClick={() => setTab("owner")}
+            onKeyDown={moveTabFocus}
           >
             <Icon name="users" size={18} />
             <span>Organization owner</span>
-            <span className={styles.arrow}>
-              <Icon name="arrow-right" size={14} />
-            </span>
           </button>
         </div>
         <section
           id={`${id}-details`}
-          aria-label="Organization details"
-          tabIndex={-1}
+          role="tabpanel"
+          aria-labelledby={`${id}-details-tab`}
+          hidden={ownerSelected}
+          tabIndex={0}
           className={styles.panel}
         >
-          <OrganizationOverview
-            organization={organization}
-            permissions={permissions}
-            onRefresh={onRefresh}
-            onInteractionChange={setBusy}
-          />
+          {!ownerSelected && (
+            <OrganizationOverview
+              organization={organization}
+              permissions={permissions}
+              onRefresh={onRefresh}
+              onInteractionChange={setBusy}
+            />
+          )}
+        </section>
+        <section
+          id={`${id}-owner`}
+          role="tabpanel"
+          aria-labelledby={`${id}-owner-tab`}
+          hidden={!ownerSelected}
+          tabIndex={0}
+          className={styles.panel}
+        >
+          {ownerSelected && (
+            <OrganizationOwnerInvitations
+              key={organization.id}
+              organization={organization}
+              permissions={permissions}
+              onInteractionChange={setBusy}
+            />
+          )}
         </section>
       </div>
-      {ownerTrigger && (
-        <OrganizationOwnerDialog
-          organization={organization}
-          permissions={permissions}
-          returnFocus={ownerTrigger}
-          onClose={() => setOwnerTrigger(null)}
-        />
-      )}
     </Dialog>
   );
 }

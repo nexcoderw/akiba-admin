@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/shared/button";
-import { Dialog } from "@/components/shared/dialog";
 import { Icon } from "@/components/shared/icon";
 import { OWNER_PERMISSIONS } from "@/lib/organizations/owner-invitations";
 import type { Organization } from "@/lib/organizations/contracts";
-import { OrganizationOwnerInvitations } from "./organization-owner-invitations";
+import { OrganizationOwnerDialog } from "./organization-owner-dialog";
 import styles from "./organization-owner.module.css";
 
 export function OrganizationOwner({
@@ -47,7 +46,7 @@ export function OrganizationOwner({
         <Heading>Manage owner invitations</Heading>
         <p>
           Review intended recipients, follow invitation progress, and manage
-          delivery or revocation from the owner panel.
+          delivery or revocation from the owner dialog.
         </p>
       </div>
       <p className={styles.note}>
@@ -57,6 +56,7 @@ export function OrganizationOwner({
       {canRead ? (
         <Button
           icon={<Icon name="arrow-right" />}
+          aria-haspopup="dialog"
           onClick={(event) => {
             setTrigger(event.currentTarget);
             onInteractionChange?.(true);
@@ -70,7 +70,7 @@ export function OrganizationOwner({
         </p>
       )}
       {trigger && canRead && (
-        <OrganizationOwnerSheet
+        <OrganizationOwnerDialog
           organization={organization}
           permissions={permissions}
           returnFocus={trigger}
@@ -78,44 +78,5 @@ export function OrganizationOwner({
         />
       )}
     </section>
-  );
-}
-
-/** Shared by the details shortcut and the direct detail page entry point. */
-export function OrganizationOwnerSheet({
-  organization,
-  permissions,
-  returnFocus,
-  onClose,
-}: {
-  organization: Organization;
-  permissions: string[];
-  returnFocus: HTMLElement;
-  onClose: () => void;
-}) {
-  const [busy, setBusy] = useState(false);
-  const canRead = permissions.includes(OWNER_PERMISSIONS.read);
-  return (
-    <Dialog
-      presentation="sheet"
-      title="Organization owner"
-      description={organization.name}
-      returnFocus={returnFocus}
-      dismissible={!busy}
-      onClose={onClose}
-    >
-      {canRead ? (
-        <OrganizationOwnerInvitations
-          key={organization.id}
-          organization={organization}
-          permissions={permissions}
-          onInteractionChange={setBusy}
-        />
-      ) : (
-        <p className={styles.note}>
-          You don&apos;t have permission to view owner invitations.
-        </p>
-      )}
-    </Dialog>
   );
 }

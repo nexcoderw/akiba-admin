@@ -7,7 +7,7 @@ import { Icon } from "@/components/shared/icon";
 import { OWNER_PERMISSIONS } from "@/lib/organizations/owner-invitations";
 import type { Organization } from "@/lib/organizations/contracts";
 import { OrganizationOverview } from "./organization-overview";
-import { OrganizationOwnerSheet } from "./organization-owner";
+import { OrganizationOwnerDialog } from "./organization-owner-dialog";
 import styles from "./organization-details.module.css";
 
 export function OrganizationDetails({
@@ -149,7 +149,7 @@ export function OrganizationDetails({
         </section>
       </div>
       {ownerTrigger && (
-        <OrganizationOwnerSheet
+        <OrganizationOwnerDialog
           organization={organization}
           permissions={permissions}
           returnFocus={ownerTrigger}

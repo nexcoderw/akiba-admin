@@ -5,6 +5,10 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { IconButton } from "./icon-button";
 import styles from "./dialog.module.css";
 
+let openDialogs = 0;
+let previousOverflow = "";
+let previousGutter = "";
+
 /**
  * Mounting opens the modal and unmounting closes it. Native showModal() supplies the inert
  * background and focus containment; this component adds a labelled structure, guarded dismissal
@@ -14,7 +18,6 @@ export function Dialog({
   title,
   description,
   size = "medium",
-  presentation = "dialog",
   dismissible = true,
   returnFocus,
   onClose,
@@ -24,7 +27,6 @@ export function Dialog({
   readonly title: ReactNode;
   readonly description?: ReactNode;
   readonly size?: "small" | "medium" | "large";
-  readonly presentation?: "dialog" | "sheet";
   /** False while a request is pending, so Escape, backdrop and close cannot abandon it. */
   readonly dismissible?: boolean;
   /** Explicit trigger: Safari does not focus buttons on click, so activeElement is unreliable. */
@@ -47,18 +49,25 @@ export function Dialog({
         ? document.activeElement
         : null);
     const root = document.documentElement;
-    const previousOverflow = root.style.overflow;
-    const previousGutter = root.style.scrollbarGutter;
-    root.style.overflow = "hidden";
-    root.style.scrollbarGutter = "stable";
     if (!element.open) element.showModal();
+    // Keep background scrolling locked until the last nested dialog closes.
+    if (openDialogs === 0) {
+      previousOverflow = root.style.overflow;
+      previousGutter = root.style.scrollbarGutter;
+      root.style.overflow = "hidden";
+      root.style.scrollbarGutter = "stable";
+    }
+    openDialogs++;
     element.querySelector<HTMLElement>("[data-autofocus]")?.focus();
     return () => {
       // Unmounting removes the element from the top layer; only a still-attached dialog
       // (a development effect re-run) needs closing before it can be shown again.
       if (element.open && element.isConnected) element.close();
-      root.style.overflow = previousOverflow;
-      root.style.scrollbarGutter = previousGutter;
+      openDialogs--;
+      if (openDialogs === 0) {
+        root.style.overflow = previousOverflow;
+        root.style.scrollbarGutter = previousGutter;
+      }
       if (previous?.isConnected) previous.focus();
     };
   }, [restoreTarget]);
@@ -68,7 +77,6 @@ export function Dialog({
       ref={dialog}
       className={styles.dialog}
       data-size={size}
-      data-presentation={presentation}
       aria-labelledby={`${id}-title`}
       aria-describedby={description ? `${id}-description` : undefined}
       onCancel={(event) => {

@@ -54,13 +54,13 @@
   min-inline-size: 0;
 }
 
-.section h3 {
+.headingTitle {
   font-size: var(--text-h4);
   font-weight: var(--weight-semibold);
   letter-spacing: -0.02em;
 }
 
-.section h3:focus {
+.headingTitle:focus {
   outline: none;
 }
 

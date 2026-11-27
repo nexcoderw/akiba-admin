@@ -5,9 +5,32 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { IconButton } from "./icon-button";
 import styles from "./dialog.module.css";
 
-let openDialogs = 0;
+const openDialogs = new Set<HTMLDialogElement>();
+const dialogListeners = new Set<(dialog: HTMLDialogElement | null) => void>();
 let previousOverflow = "";
 let previousGutter = "";
+
+function activeDialog() {
+  return (
+    [...openDialogs].findLast((dialog) => dialog.open && dialog.isConnected) ??
+    null
+  );
+}
+
+function notifyDialogLayer() {
+  const current = activeDialog();
+  for (const listener of dialogListeners) listener(current);
+}
+
+export function subscribeToDialogLayer(
+  listener: (dialog: HTMLDialogElement | null) => void,
+) {
+  dialogListeners.add(listener);
+  listener(activeDialog());
+  return () => {
+    dialogListeners.delete(listener);
+  };
+}
 
 /**
  * Mounting opens the modal and unmounting closes it. Native showModal() supplies the inert
@@ -51,20 +74,22 @@ export function Dialog({
     const root = document.documentElement;
     if (!element.open) element.showModal();
     // Keep background scrolling locked until the last nested dialog closes.
-    if (openDialogs === 0) {
+    if (openDialogs.size === 0) {
       previousOverflow = root.style.overflow;
       previousGutter = root.style.scrollbarGutter;
       root.style.overflow = "hidden";
       root.style.scrollbarGutter = "stable";
     }
-    openDialogs++;
+    openDialogs.add(element);
+    notifyDialogLayer();
     element.querySelector<HTMLElement>("[data-autofocus]")?.focus();
     return () => {
       // Unmounting removes the element from the top layer; only a still-attached dialog
       // (a development effect re-run) needs closing before it can be shown again.
       if (element.open && element.isConnected) element.close();
-      openDialogs--;
-      if (openDialogs === 0) {
+      openDialogs.delete(element);
+      notifyDialogLayer();
+      if (openDialogs.size === 0) {
         root.style.overflow = previousOverflow;
         root.style.scrollbarGutter = previousGutter;
       }
@@ -89,7 +114,10 @@ export function Dialog({
         const element = event.currentTarget;
         if (element.open) return;
         if (dismissible) onClose();
-        else element.showModal();
+        else {
+          element.showModal();
+          notifyDialogLayer();
+        }
       }}
       onPointerDown={(event) => {
         pressStartedOnBackdrop.current = event.target === event.currentTarget;

@@ -1,4 +1,4 @@
-import { OrganizationOwner } from "./organization-owner";
+import { OrganizationOwnerInvitations } from "./organization-owner-invitations";
 import { OWNER_PERMISSIONS } from "@/lib/organizations/owner-invitations";
 import Link from "next/link";
 import { StatePanel } from "@/components/shared/state-panel";
@@ -94,7 +94,7 @@ export async function OrganizationDetailView({
             organization={result.data}
             permissions={permissions}
           />
-          <OrganizationOwner
+          <OrganizationOwnerInvitations
             headingLevel={2}
             key={result.data.id}
             organization={result.data}

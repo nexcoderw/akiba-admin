@@ -4,18 +4,11 @@
   min-inline-size: 0;
 }
 
-/*
-  The section fills the sheet's height, so the pagination (margin-block-start: auto)
-  rests at the bottom even when there are few invitations.
-  --sheet-chrome is the sheet's header + padding; tune it if the footer
-  sits too high (decrease) or the sheet starts to scroll (increase).
-*/
 .section {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   min-inline-size: 0;
-  min-block-size: calc(100dvh - var(--sheet-chrome, 10rem));
   padding-block: 0;
   animation: rise 450ms var(--motion-ease) both;
 }
@@ -61,13 +54,13 @@
   min-inline-size: 0;
 }
 
-.section h3 {
+.headingTitle {
   font-size: var(--text-h4);
   font-weight: var(--weight-semibold);
   letter-spacing: -0.02em;
 }
 
-.section h3:focus {
+.headingTitle:focus {
   outline: none;
 }
 
@@ -183,7 +176,7 @@
   line-height: 1.7;
 }
 
-/* ---------- Pagination (footer bar) ---------- */
+/* ---------- Pagination ---------- */
 .pagination {
   position: sticky;
   inset-block-end: 0;
@@ -191,8 +184,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--space-3);
-  margin-block-start: auto;
   padding-block: var(--space-3);
   border-block-start: 1px solid var(--ui-divider);
   background: var(--ui-surface);

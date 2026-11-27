@@ -12,8 +12,6 @@ import {
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/shared/button";
 import { Dialog } from "@/components/shared/dialog";
-import { Form } from "@/components/shared/form";
-import { Input } from "@/components/shared/input";
 import { Icon } from "@/components/shared/icon";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatePanel } from "@/components/shared/state-panel";
@@ -23,7 +21,6 @@ import {
   OWNER_PERMISSIONS,
   ownerInvitationAvailability,
   deliveryLabels,
-  validateOwnerInvite,
   type InvitationCommand,
   type InvitationPage,
   type OwnerInvitation,
@@ -31,6 +28,7 @@ import {
 import type { OwnerInvitationResult } from "@/lib/organizations/owner-invitation-service";
 import type { Organization } from "@/lib/organizations/contracts";
 import { OrganizationOwnerInvitationCard } from "./organization-owner-invitation-card";
+import { OrganizationOwnerInviteDialog } from "./organization-owner-invite-dialog";
 import styles from "./organization-owner-invitations.module.css";
 
 type Modal =
@@ -45,15 +43,18 @@ export function OrganizationOwnerInvitations({
   organization,
   permissions,
   disabled = false,
+  headingLevel = 3,
   onInteractionChange,
 }: {
   organization: Organization;
   permissions: string[];
   disabled?: boolean;
+  headingLevel?: 2 | 3;
   onInteractionChange?: (open: boolean) => void;
 }) {
   const router = useRouter();
   const toast = useToast();
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const id = useId();
   const sequence = useRef(0);
   const locked = useRef(false);
@@ -68,12 +69,6 @@ export function OrganizationOwnerInvitations({
   const [modal, setModal] = useState<Modal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshRequired, setRefreshRequired] = useState(false);
-  const [fields, setFields] = useState<{
-    displayName?: string;
-    email?: string;
-  }>({});
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
   const canRead = permissions.includes(OWNER_PERMISSIONS.read);
   const eligible =
     organization.status === "PENDING" || organization.status === "ACTIVE";
@@ -167,9 +162,6 @@ export function OrganizationOwnerInvitations({
       return;
     setModal(next);
     setError(null);
-    setFields({});
-    setDisplayName("");
-    setEmail("");
     onInteractionChange?.(true);
   }
 
@@ -238,29 +230,6 @@ export function OrganizationOwnerInvitations({
     }
   }
 
-  async function create(form: FormData) {
-    const name = form.get("displayName");
-    const address = form.get("email");
-    const errors = validateOwnerInvite(name, address);
-    if (Object.keys(errors).length) {
-      setFields(errors);
-      toast.error("Review the highlighted fields.");
-      requestAnimationFrame(() =>
-        document
-          .getElementById(errors.displayName ? `${id}-name` : `${id}-email`)
-          ?.focus(),
-      );
-      return;
-    }
-    if (typeof name !== "string" || typeof address !== "string") return;
-    await mutate({
-      operation: "create",
-      organizationId: organization.id,
-      displayName: name,
-      email: address,
-    });
-  }
-
   function confirmSelected() {
     if (!modal || modal.kind === "create") return;
     const command: InvitationCommand = {
@@ -272,11 +241,16 @@ export function OrganizationOwnerInvitations({
     startTransition(() => mutate(command));
   }
 
-  function submitCreate(form: FormData): Promise<void> {
+  function submitCreate(displayName: string, email: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       startTransition(async () => {
         try {
-          await create(form);
+          await mutate({
+            operation: "create",
+            organizationId: organization.id,
+            displayName,
+            email,
+          });
           resolve();
         } catch (cause) {
           reject(cause);
@@ -285,7 +259,12 @@ export function OrganizationOwnerInvitations({
     });
   }
 
-  if (!canRead) return null;
+  if (!canRead)
+    return (
+      <p className={styles.note}>
+        You don&apos;t have permission to view owner invitations.
+      </p>
+    );
   const canCreate =
     page !== null &&
     ownerInvitationAvailability(organization.status, permissions).create;
@@ -297,9 +276,13 @@ export function OrganizationOwnerInvitations({
             <Icon name="users" />
           </span>
           <div className={styles.headingCopy}>
-            <h3 id={`${id}-title`} tabIndex={-1}>
+            <Heading
+              id={`${id}-title`}
+              className={styles.headingTitle}
+              tabIndex={-1}
+            >
               Owner invitations
-            </h3>
+            </Heading>
             <p className={styles.note}>
               Invitation records show the intended recipient. Verified owner
               identity, enrollment progress and MFA readiness are not available
@@ -324,12 +307,13 @@ export function OrganizationOwnerInvitations({
             <Button
               size="sm"
               icon={<Icon name="email" />}
+              aria-haspopup="dialog"
               disabled={disabled || refreshRequired || modal !== null}
               onClick={(event) =>
                 open({ kind: "create", trigger: event.currentTarget })
               }
             >
-              Invite initial Owner
+              Invite initial owner
             </Button>
           )}
         </div>
@@ -418,7 +402,6 @@ export function OrganizationOwnerInvitations({
               operator review. Accepted invitations do not prove owner MFA or
               organization readiness.
             </p>
-            {/* Footer bar: pinned to the bottom of the sheet, never scrolled past. */}
             <nav
               className={styles.pagination}
               aria-label="Owner invitation pages"
@@ -464,146 +447,80 @@ export function OrganizationOwnerInvitations({
           </>
         )
       )}
-      {modal && (
+      {modal?.kind === "create" && (
+        <OrganizationOwnerInviteDialog
+          returnFocus={modal.trigger}
+          pending={pending}
+          error={error}
+          refreshRequired={refreshRequired}
+          onClose={close}
+          onSubmit={submitCreate}
+          onError={() => {
+            const message =
+              "We couldn't confirm the request. Close and refresh before trying again.";
+            setRefreshRequired(true);
+            setError(message);
+            toast.error(message);
+          }}
+        />
+      )}
+      {modal && modal.kind !== "create" && (
         <Dialog
-          presentation="sheet"
           title={
-            modal.kind === "create"
-              ? "Invite initial Organization Owner"
-              : modal.kind === "revoke"
-                ? "Revoke this owner invitation?"
-                : "Request invitation delivery?"
+            modal.kind === "revoke"
+              ? "Revoke this owner invitation?"
+              : "Request invitation delivery?"
           }
           description={
-            modal.kind === "create"
-              ? "Create an invitation record for this organization. This does not send email or activate owner access."
-              : modal.kind === "revoke"
-                ? "The recipient will no longer be able to use this invitation to complete enrollment. Existing memberships are not changed."
-                : "Reserve delivery to the recorded recipient. This does not resend an existing proof or confirm inbox receipt."
+            modal.kind === "revoke"
+              ? "The recipient will no longer be able to use this invitation to complete enrollment. Existing memberships are not changed."
+              : "Reserve delivery to the recorded recipient. This does not resend an existing proof or confirm inbox receipt."
           }
           returnFocus={modal.trigger}
           dismissible={!pending}
           onClose={close}
         >
-          {modal.kind === "create" ? (
-            <Form
-              className={styles.form}
-              onErrorAction={() => {
-                setRefreshRequired(true);
-                setError(
-                  "We couldn't confirm the request. Close and refresh before trying again.",
-                );
-                toast.error(
-                  "We couldn't confirm the request. Close and refresh before trying again.",
-                );
-              }}
-              onSubmitAction={submitCreate}
-              noValidate
-            >
-              <Input
-                id={`${id}-name`}
-                name="displayName"
-                label="Owner name"
-                placeholder="e.g. Aline Uwase"
-                autoComplete="name"
-                icon={<Icon name="user" />}
-                required
-                maxLength={160}
-                value={displayName}
-                disabled={pending}
-                error={fields.displayName}
-                onChange={(event) => {
-                  setDisplayName(event.target.value);
-                  setFields((value) => ({ ...value, displayName: undefined }));
-                }}
-                data-autofocus
-              />
-              <Input
-                id={`${id}-email`}
-                name="email"
-                type="email"
-                label="Owner email address"
-                placeholder="e.g. aline@example.com"
-                autoComplete="email"
-                icon={<Icon name="email" />}
-                required
-                maxLength={254}
-                value={email}
-                disabled={pending}
-                error={fields.email}
-                onChange={(event) => {
-                  setEmail(event.target.value);
-                  setFields((value) => ({ ...value, email: undefined }));
-                }}
-              />
-              {error && (
-                <p className={styles.error} role="alert">
-                  <Icon name="error" />
-                  <span>{error}</span>
-                </p>
-              )}
-              <div className={styles.actions}>
-                <Button
-                  variant="secondary"
-                  icon={<Icon name="close" />}
-                  disabled={pending}
-                  onClick={close}
-                >
-                  {refreshRequired ? "Close and refresh" : "Cancel"}
-                </Button>
-                <Button
-                  type="submit"
-                  icon={<Icon name="email" />}
-                  disabled={refreshRequired}
-                  loadingLabel="Creating owner invitation…"
-                >
-                  Create invitation
-                </Button>
-              </div>
-            </Form>
-          ) : (
-            <div className={styles.form}>
-              <p className={styles.email}>
-                <Icon name="email" />
-                <span>{modal.invitation.email}</span>
+          <div className={styles.form}>
+            <p className={styles.email}>
+              <Icon name="email" />
+              <span>{modal.invitation.email}</span>
+            </p>
+            {error && (
+              <p className={styles.error} role="alert">
+                <Icon name="error" />
+                <span>{error}</span>
               </p>
-              {error && (
-                <p className={styles.error} role="alert">
-                  <Icon name="error" />
-                  <span>{error}</span>
-                </p>
-              )}
-              <div className={styles.actions}>
-                <Button
-                  variant="secondary"
-                  icon={<Icon name="close" />}
-                  disabled={pending}
-                  onClick={close}
-                  data-autofocus
-                >
-                  {refreshRequired ? "Close and refresh" : "Cancel"}
-                </Button>
-                <Button
-                  variant={modal.kind === "revoke" ? "danger" : "primary"}
-                  icon={
-                    <Icon name={modal.kind === "revoke" ? "close" : "email"} />
-                  }
-                  pending={pending}
-                  disabled={refreshRequired}
-                  loadingLabel={
-                    modal.kind === "revoke"
-                      ? "Revoking invitation…"
-                      : "Requesting delivery…"
-                  }
-                  onClick={confirmSelected}
-                >
-                  {modal.kind === "revoke"
-                    ? "Revoke invitation"
-                    : "Request delivery"}
-                </Button>
-              </div>
+            )}
+            <div className={styles.actions}>
+              <Button
+                variant="secondary"
+                icon={<Icon name="close" />}
+                disabled={pending}
+                onClick={close}
+                data-autofocus
+              >
+                {refreshRequired ? "Close and refresh" : "Cancel"}
+              </Button>
+              <Button
+                variant={modal.kind === "revoke" ? "danger" : "primary"}
+                icon={
+                  <Icon name={modal.kind === "revoke" ? "close" : "email"} />
+                }
+                pending={pending}
+                disabled={refreshRequired}
+                loadingLabel={
+                  modal.kind === "revoke"
+                    ? "Revoking invitation…"
+                    : "Requesting delivery…"
+                }
+                onClick={confirmSelected}
+              >
+                {modal.kind === "revoke"
+                  ? "Revoke invitation"
+                  : "Request delivery"}
+              </Button>
             </div>
-          )}
+          </div>
         </Dialog>
       )}
     </section>
